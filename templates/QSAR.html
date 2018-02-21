@@ -1,0 +1,24 @@
+{% extends "template.html" %}
+{% block content %}
+
+		{% if error %}
+			<p class="error"><strong>Error:</strong> {{ error }}</p>
+		{% endif %}
+<style>
+	div.profile {
+
+    padding-left: 100px;
+}
+</style>
+
+<div class="QSAR">
+
+
+	{% for dataset in datasets %}
+		{{ dataset }}
+	{% endfor %}
+
+
+</div>
+
+{% endblock %}

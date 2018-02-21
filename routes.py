@@ -421,7 +421,21 @@ def CIIPPredictor():
     profiles = [profile for profile in os.listdir(USER_PROFILES_FOLDER)]
     testsets = [testset for testset in os.listdir(USER_TEST_SETS_FOLDER) if testset[-4:] == '.txt']
     return render_template('CIIPPredictor.html', profiles=profiles, 
-                           username=g.user.username, testsets=testsets)	
+                           username=g.user.username, testsets=testsets)
+
+
+@app.route('/QSAR')
+@login_required
+def QSAR():
+    """ Displays QSAR page.
+
+    """
+    USER_COMPOUNDS_FOLDER = CIIProConfig.UPLOAD_FOLDER + '/' + g.user.username + '/compounds'
+    datasets = [dataset for dataset in os.listdir(USER_COMPOUNDS_FOLDER) if dataset[-4:] == '.txt']
+
+    return render_template('QSAR.html', datasets=datasets)
+
+
 
 
 # TODO Create a save button to save optimized profile, allow for name
