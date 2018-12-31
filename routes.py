@@ -11,6 +11,8 @@ from CIIProTools import *
 from ciipro_config import CIIProConfig
 import json
 from BioSimLib import *
+from QSAR_predictions import make_ml_class_predictions, make_ml_regress_predictions, get_model_file_list, \
+    make_display_list, make_dl_predictions, make_multitask_dl_predictions
 #import urllib
 import zipfile
 import sqlalchemy.ext
@@ -293,7 +295,7 @@ def passreset():
         
         return render_template('passreset.html')
    
-        
+
 
 @app.route('/datasets', methods=['GET', 'POST'])
 @login_required
@@ -326,7 +328,7 @@ def uploaddataset():
     USER_COMPOUNDS_FOLDER = CIIProConfig.UPLOAD_FOLDER + '/' + g.user.username + '/compounds'
     USER_TEST_SETS_FOLDER = CIIProConfig.UPLOAD_FOLDER + '/' + g.user.username + '/test_sets'
     USER_NN_FOLDER = CIIProConfig.UPLOAD_FOLDER + '/' + g.user.username + '/NNs'
-    
+
     username = g.user.username
     datasets = [ds for ds in os.listdir(USER_COMPOUNDS_FOLDER)]
     testsets = [ts for ts in os.listdir(USER_TEST_SETS_FOLDER)]
@@ -430,13 +432,79 @@ def QSAR():
     """ Displays QSAR page.
 
     """
-    USER_COMPOUNDS_FOLDER = CIIProConfig.UPLOAD_FOLDER + '/' + g.user.username + '/compounds'
-    datasets = [dataset for dataset in os.listdir(USER_COMPOUNDS_FOLDER) if dataset[-4:] == '.txt']
+    USER_TEST_SETS_FOLDER = CIIProConfig.UPLOAD_FOLDER + '/' + g.user.username + '/test_sets'
+    testsets = [testset for testset in os.listdir(USER_TEST_SETS_FOLDER) if testset[-4:] == '.txt']
+    ML_class_models, ML_regress_models, DL_class_models, ER_multitask_models = get_model_file_list(
+        CIIProConfig.QSAR_MODELS)
+    ML_class_algs = {'ada': 'ADABoost Decision Tree', 'knn': 'k-Nearest Neighbors', 'rf': 'Random Forest',
+                     'svc': 'Support Vector Machines'}
+    ML_regress_algs = {'knnr': 'k-Nearest Neighbors Regression', 'rfr': 'Random Forest Regressor',
+                       'svr': 'Support Vector Regression'}
+    DL_class_algs = {'DNN_3': 'Deep Neural Network (3 Hidden Layers)', 'DNN_4': 'Deep Neural Network (4 Hidden Layers)'}
+    ld50_class_models = make_display_list(ML_class_models, ML_class_algs) + make_display_list(DL_class_models, DL_class_algs)
+    ld50_regress_models = make_display_list(ML_regress_models, ML_regress_algs)
 
-    return render_template('QSAR.html', datasets=datasets)
+    return render_template('QSAR.html', username=g.user.username, testsets=testsets,
+                           class_models=ld50_class_models, regress_models=ld50_regress_models)
 
+@app.route('/QSARPredict',  methods=['POST'])
+@login_required
+def QSARPredict():
+    """
+    Makes predictions on a user's selected dataset using the selected QSAR model.
 
+    Requests:
+    QSAR_model (str): Selected QSAR model from radio button
+    compound_filename (str): Selected dataset from radio button
+    """
 
+    if request.method == 'POST':
+        compound_filename = str(request.form['compound_filename'])
+        chosen_alg = str(request.form['QSAR_model'])
+        qsar_model_directory = CIIProConfig.QSAR_MODELS
+        USER_TEST_SETS_FOLDER = CIIProConfig.UPLOAD_FOLDER + '/' + g.user.username + '/' 'test_sets'
+        testsets = [testset for testset in os.listdir(USER_TEST_SETS_FOLDER) if testset[-4:] == '.txt']
+        ML_class_models, ML_regress_models, DL_class_models, ER_multitask_models = get_model_file_list(
+            CIIProConfig.QSAR_MODELS)
+        ML_class_algs = {'ada': 'ADABoost Decision Tree', 'knn': 'k-Nearest Neighbors', 'rf': 'Random Forest',
+                         'svc': 'Support Vector Machines'}
+        ML_regress_algs = {'knnr': 'k-Nearest Neighbors Regression', 'rfr': 'Random Forest Regressor',
+                           'svr': 'Support Vector Regression'}
+        DL_class_algs = {'DNN_3': 'Deep Neural Network (3 Hidden Layers)',
+                         'DNN_4': 'Deep Neural Network (4 Hidden Layers)'}
+        class_models = make_display_list(ML_class_models, ML_class_algs) + make_display_list(
+            DL_class_models, DL_class_algs)
+        regress_models = make_display_list(ML_regress_models, ML_regress_algs)
+        descriptors = ['FCFP6', 'MACCS']
+        unpickled_test_set = pickle_to_pandas(os.path.join(USER_TEST_SETS_FOLDER, compound_filename[:-11]))
+        ML_class_names = list(ML_class_algs.values())
+        ML_regress_names = list(ML_regress_algs.values())
+        DL_class_names = list(DL_class_algs.values())
+        ER_multitask_model_name = 'Multitask Deep Neural Network (3 Hidden Layers)'
+        ER_ASSAYS = ['NVS_NR_bER', 'NVS_NR_hER', 'NVS_NR_mERa', 'OT_ER_ERaERa_0480', 'OT_ER_ERaERa_1440',
+                     'OT_ER_ERaERb_0480', 'OT_ER_ERaERb_1440', 'OT_ER_ERbERb_0480', 'OT_ER_ERbERb_1440',
+                     'OT_ERa_EREGFP_0120', 'OT_ERa_EREGFP_0480', 'ATG_ERa_TRANS_up', 'ATG_ERE_CIS_up',
+                     'TOX21_ERa_BLA_Agonist_ratio', 'TOX21_ERa_LUC_BG1_Agonist', 'ACEA_T47D_80hr_Positive',
+                     'TOX21_ERa_BLA_Antagonist_ratio', 'TOX21_ERa_LUC_BG1_Antagonist']
+
+        if chosen_alg in ML_class_names:
+            predictions, cids = make_ml_class_predictions(descriptors, unpickled_test_set, qsar_model_directory, ML_class_algs,
+                                                    chosen_alg)
+        if chosen_alg in ML_regress_names:
+            predictions, cids = make_ml_regress_predictions(descriptors, unpickled_test_set, qsar_model_directory,
+                                                    ML_regress_algs, chosen_alg)
+        if chosen_alg in DL_class_names:
+            predictions, cids = make_dl_predictions(descriptors, unpickled_test_set, qsar_model_directory,
+                                                    DL_class_algs, chosen_alg)
+        if chosen_alg == ER_multitask_model_name:
+            predictions, cids = make_multitask_dl_predictions(descriptors, unpickled_test_set, qsar_model_directory)
+            print(len(cids))
+
+        return render_template('QSAR.html', testsets=testsets, username=g.user.username, class_models=class_models,
+                               regress_models=regress_models, predictions=predictions, descriptors=descriptors,
+                               cids=cids, alg=chosen_alg, len_cids=len(cids), len_predictions=len(predictions),
+                               ML_class_algs=ML_class_names, ML_regress_algs=ML_regress_names,
+                               DL_class_algs=DL_class_names, er_assays=ER_ASSAYS, er_model=[ER_multitask_model_name])
 
 # TODO Create a save button to save optimized profile, allow for name
 @app.route('/optimizeprofile')
