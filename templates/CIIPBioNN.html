@@ -98,7 +98,7 @@
 			<div class="col-sm-2" style="width: 50%; background-color: LightGray; border: 1px solid blue;">
 				<b>Choose test set to predict:</b><br>
     	       {% if testsets %}  
-                		Avaialable datasets for <b>{{ username }}</b>:<br>
+                		Available datasets for <b>{{ username }}</b>:<br>
         		{% for testset in testsets %}
                             {% if testsets.index(testset) == 0 %}
 				<input type="radio" name="compound_filename" value="{{ testset }}" checked="checked"> {{ testset }}
