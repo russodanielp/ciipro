@@ -760,10 +760,6 @@ def contact():
       return render_template('contact.html')
 
 
-"""
-    Custom error pages
-
-"""
 
 @app.errorhandler(500)
 def internalServiceError(e):
