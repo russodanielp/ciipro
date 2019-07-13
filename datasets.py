@@ -9,13 +9,18 @@ import numpy as np
 
 class DataSet:
 
-    def __init__(self, name: str, compounds: List, activities: List, identifier_type='CID'):
+    def __init__(self, name: str,
+                 compounds: List,
+                 activities: List,
+                 set_type: str,
+                 identifier_type='CID'):
         """  to do  """
 
         self.name = name
         self.compounds = compounds
         self.activities = activities
         self.id_type = identifier_type
+        self.set_type = set_type
 
     def __repr__(self):
         return "{}".format(self.name)
@@ -29,7 +34,7 @@ class DataSet:
         if self.id_type == 'cid':
             return compounds_db.query_list(self.compounds, 'CID', ['CID'])
         elif self.id_type == 'cas':
-            return synonyms_db.query_list(self.cmopounds, 'Synonym', ['CID'])
+            return synonyms_db.query_list(self.compounds, 'Synonym', ['CID'])
         elif self.id_type == 'smiles':
             return compounds_db.query_list(self.compounds, 'SMILES Canonical', ['CID'])
         elif self.id_type == 'iupac':
@@ -48,7 +53,6 @@ class DataSet:
 
         # need to convert to numbers for pandas
 
-        assays_conerted = []
         for assay_data in assays:
             if assay_data['Outcome'] == 'Active':
                 assay_data['Outcome'] = 1
@@ -69,9 +73,10 @@ def make_dataset(dataset_json):
     """ takes the json of a dataset and makes a dataset object """
     name = dataset_json['overview']['name']
     identifier_type = dataset_json['overview']['identifier_type']
+    set_type = dataset_json['overview']['set_type']
     identifiers = [compound['identifier'] for compound in dataset_json['compounds']]
     activities = [compound['activity'] for compound in dataset_json['compounds']]
-    return DataSet(name, identifiers, activities, identifier_type)
+    return DataSet(name, identifiers, activities, set_type, identifier_type)
 
 
 if __name__ == '__main__':

@@ -7,8 +7,12 @@ def parse_upload_file(filename):
 
     for line in f:
         line = line.strip()
-        identifiers.append(line.split('\t')[0])
-        activities.append(line.split('\t')[1])
-    print(identifiers, activities)
+
+        identifier = line.split('\t')[0].strip()
+        activity = line.split('\t')[1].strip()
+
+        identifiers.append(identifier)
+        activities.append(activity)
+
     return identifiers, activities
 
