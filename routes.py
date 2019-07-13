@@ -20,6 +20,8 @@ import sqlalchemy.ext
 from datasets_io import write_ds_to_json
 import pandas as pd
 
+import ciipro_io
+
 import datasets_io as ds_io
 
 
@@ -352,10 +354,18 @@ def uploaddataset():
 
         # TODO: Need to write some checks to make sure everything in the uploaded dataset is good
         # TODO: Things like all activies are there, columns match, etc
+        # TODO: the following type conversions are necessary for JSON serialization
 
-        df = pd.read_csv(user_uploaded_file, sep='\t', header=None)
+        identifiers, activities = ciipro_io.parse_upload_file(user_uploaded_file)
 
-        ds_io.write_ds_to_json(df, user_datasets_folder, name, input_type, set_type=model_type)
+        activities = list(map(int, activities))
+
+        if input_type == 'cid':
+            identifiers = list(map(int, activities))
+        else:
+            identifiers = list(map(str, activities))
+
+        ds_io.write_ds_to_json(identifiers, activities, user_datasets_folder, name, input_type, set_type=model_type)
         os.remove(user_uploaded_file)
 
         return redirect(url_for('datasets'))  

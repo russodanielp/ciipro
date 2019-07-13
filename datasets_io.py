@@ -4,9 +4,9 @@ import json
 from pandas import DataFrame
 import pandas as pd
 import os, glob
+from typing import List
 
-
-def write_ds_to_json(df: DataFrame, to_dir: str, name: str, identifier_type: str, set_type='training'):
+def write_ds_to_json(identifiers: List, activities: List, to_dir: str, name: str, identifier_type: str, set_type='training'):
     """ writes a dataset to a json file.  dataset is a dataframe where the first column is an
      identifier and the second is the corresponding activities
 
@@ -22,14 +22,14 @@ def write_ds_to_json(df: DataFrame, to_dir: str, name: str, identifier_type: str
     no_actives, no_inactives = 0, 0
 
     compounds = []
-    for i, row in df.iterrows():
+    for id, act in zip(identifiers, activities):
         row_dict = {}
-        row_dict['identifier'] = row[0]
-        row_dict['activity'] = row[1]
+        row_dict['identifier'] = id
+        row_dict['activity'] = act
 
-        if row[1] == 1:
+        if act == 1:
             no_actives += 1
-        elif row[1] == 0:
+        elif act == 0:
             no_inactives += 1
         compounds.append(row_dict)
 
