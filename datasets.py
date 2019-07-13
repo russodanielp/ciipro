@@ -47,7 +47,10 @@ class DataSet:
         assays = outcomes_db.query_list(cids, 'CID', ['AID', 'Outcome'])
         return assays
 
-    def get_bioprofile(self):
+    def get_activities(self):
+        return pd.Series(self.activities, index=self.compounds)
+
+    def get_bioprofile(self, min_actives=0):
 
         assays = self.get_assays()
 
@@ -61,9 +64,14 @@ class DataSet:
             else:
                 assay_data['Outcome'] = 0
 
+            assay_data['CID'] = int(assay_data['CID'])
+            assay_data['AID'] = int(assay_data['AID'])
 
         # the agg funtion should give preferences to activtes
         df = pd.DataFrame(assays).pivot_table(index='CID', columns='AID', values='Outcome', aggfunc=np.max)
+
+        df = df.loc[:, ((df == 1).sum() >= min_actives)]
+
         return df.fillna(0)
 
 
@@ -80,9 +88,12 @@ def make_dataset(dataset_json):
 
 
 if __name__ == '__main__':
+
+    # this is just for testing
+
     import datasets_io
 
     json_data = datasets_io.load_json(r'D:\ciipro\Guest\datasets\Carc_epoxides_aziridines.json')
     ds = make_dataset(json_data)
 
-    print(ds.get_bioprofile())
+    print((ds.get_bioprofile(min_actives=1) == -1).sum())
