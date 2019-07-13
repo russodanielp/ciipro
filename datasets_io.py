@@ -3,7 +3,7 @@
 import json
 from pandas import DataFrame
 import pandas as pd
-import os
+import os, glob
 
 
 def write_ds_to_json(df: DataFrame, to_dir: str, name: str, identifier_type: str, set_type='training'):
@@ -58,7 +58,17 @@ def load_json(dir):
     return dataset
 
 
+def get_datasets_names_for_user(compounds_dir: str, set_type='training'):
+    all_jsons = glob.glob(os.path.join(compounds_dir, '*.json'))
+    names = []
 
+    for json_file in all_jsons:
+
+        dataset = load_json(json_file)
+
+        if dataset['overview']['set_type'] == set_type:
+            names.append(dataset['overview']['name'])
+    return names
 #
 # df = pd.read_csv('resources/ER_tutorial/ER_test_can.txt', sep='\t', header=None)
 #

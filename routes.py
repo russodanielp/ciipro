@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
+import ntpath
+
 from flask import Flask, render_template, flash, session, \
     redirect, url_for, g, send_file, request
 from flask_login import login_user, logout_user, current_user, login_required, LoginManager
@@ -14,6 +16,13 @@ from BioSimLib import *
 #import urllib
 import zipfile
 import sqlalchemy.ext
+
+from datasets_io import write_ds_to_json
+import pandas as pd
+
+import datasets_io as ds_io
+
+
 
 # TODO: go through each module and identifiy and take out passwords, security crucial information
 
@@ -66,7 +75,22 @@ class User(db.Model):
         
     def __repr__(self):
         return '<User %r>' % (self.username)
-        
+
+
+    # I added these functions
+
+    def get_user_folder(self, folder_name):
+
+        # make folder if it doesnt exists
+        folder = os.path.join(CIIProConfig.UPLOAD_FOLDER, self.username, folder_name)
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+        return folder
+
+    def get_user_datasets(self, set_type="training"):
+        """ returns  """
+        return ds_io.get_datasets_names_for_user(self.get_user_folder('datasets'), set_type=set_type)
+
 
     
 db.create_all()
@@ -169,7 +193,7 @@ def register():
         directory = CIIProConfig.UPLOAD_FOLDER + '/' + str(user.username)
         if not os.path.exists(directory):
             os.makedirs(directory)
-            sub_folders = ["compounds", "biosims", "profiles", "converter", "test_sets", "NNs"]
+            sub_folders = ["compounds", "biosims", "profiles", "converter", "test_sets", "NNs", "datasets"]
             for sf in sub_folders:
                 sub_directory = directory + '/' + sf
                 os.makedirs(sub_directory)
@@ -285,13 +309,8 @@ def datasets():
     """ Displays datasets page with all available datasets in users compound folder. 
     
     """
-    USER_COMPOUNDS_FOLDER = CIIProConfig.UPLOAD_FOLDER + '/' + g.user.username + '/compounds'
-    USER_TEST_SETS_FOLDER = CIIProConfig.UPLOAD_FOLDER + '/' + g.user.username + '/test_sets'
-    datasets = [ds for ds in os.listdir(USER_COMPOUNDS_FOLDER) if ds[-4:] == '.txt']
-    testsets = [ts for ts in os.listdir(USER_TEST_SETS_FOLDER) if ts[-4:] == '.txt']
-
     username = g.user.username
-    return render_template('datasets.html', datasets=datasets, testsets=testsets,
+    return render_template('datasets.html', datasets=g.user.get_user_datasets(set_type='training'), testsets=g.user.get_user_datasets(set_type='test'),
                           username=username)
                            
                            
@@ -307,41 +326,45 @@ def uploaddataset():
             model_type: training or test set upload
     """
    
-    USER_COMPOUNDS_FOLDER = CIIProConfig.UPLOAD_FOLDER + '/' + g.user.username + '/compounds'
-    USER_TEST_SETS_FOLDER = CIIProConfig.UPLOAD_FOLDER + '/' + g.user.username + '/test_sets'
-    USER_NN_FOLDER = CIIProConfig.UPLOAD_FOLDER + '/' + g.user.username + '/NNs'
+
     
     username = g.user.username
-    datasets = [ds for ds in os.listdir(USER_COMPOUNDS_FOLDER)]
-    testsets = [ts for ts in os.listdir(USER_TEST_SETS_FOLDER)]
-    
+
     # requests
-    input_type = request.form['input_type']
+    input_type = request.form['input_type'].lower()
     file = request.files['compound_file']
     model_type = request.form['model_type']
     
     if file and allowed_file(file.filename):
         compound_filename = secure_filename(file.filename)
-        if model_type == "training":
-            file_directory_path = USER_COMPOUNDS_FOLDER
-        else:
-            file_directory_path = USER_TEST_SETS_FOLDER
-            try:
-                os.mkdir(USER_NN_FOLDER + '/' + compound_filename[:-4])
-            except:
-                pass
-            
-            
-        file.save(os.path.join(file_directory_path, compound_filename))
-        convert_file(os.path.join(file_directory_path, compound_filename), input_type)
-        os.remove(os.path.join(file_directory_path, compound_filename))        
-        datasets = [ds for ds in os.listdir(USER_COMPOUNDS_FOLDER)]
-        testsets = [ts for ts in os.listdir(USER_TEST_SETS_FOLDER)]
+
+        user_datasets_folder = g.user.get_user_folder('datasets')
+
+
+        user_uploaded_file = os.path.join(user_datasets_folder, compound_filename)
+
+        # make the name of the dataset just the basename of the file
+
+        name = ntpath.basename(user_uploaded_file).split('.')[0]
+
+        # I think we have to save this in order to use it, not sure if we car read it otherwise
+        file.save(user_uploaded_file)
+
+        # TODO: Need to write some checks to make sure everything in the uploaded dataset is good
+        # TODO: Things like all activies are there, columns match, etc
+
+        df = pd.read_csv(user_uploaded_file, sep='\t', header=None)
+
+        ds_io.write_ds_to_json(df, user_datasets_folder, name, input_type, set_type=model_type)
+        os.remove(user_uploaded_file)
+
         return redirect(url_for('datasets'))  
     else:
         error = "Please attach file"
-        return render_template('datasets.html', datasets=datasets, testsets=testsets, 
-                                username=username, error=error)  
+        return render_template('datasets.html',
+                               datasets=g.user.get_user_datasets(set_type='training'),
+                               testsets=g.user.get_user_datasets(set_type='test'),
+                               username=username, error=error)
      
 
 @app.route('/deletetestset', methods=['POST'])
@@ -353,7 +376,7 @@ def deletetestset():
             testset_filename (str): radiobutton from datasets page.  
     """
     USER_TEST_SETS_FOLDER = CIIProConfig.UPLOAD_FOLDER + '/' + g.user.username + '/test_sets'
-    USER_COMPOUNDS_FOLDER = CIIProConfig.UPLOAD_FOLDER + '/' + g.user.username + '/compounds'
+
     username = g.user.username
     testset_filename = request.form['testset_filename']
     testset_filename = str(testset_filename)
@@ -378,7 +401,7 @@ def deletedataset():
     datasets = [ds for ds in os.listdir(USER_COMPOUNDS_FOLDER)]
     testsets = [ts for ts in os.listdir(USER_TEST_SETS_FOLDER)]
 
-    return render_template('datasets.html', datasets=datasets, testsets=testsets,
+    return render_template('datasets.html', datasets=g.user.get_user_datasets(set_type='training'), testsets=g.user.get_user_datasets(set_type='test'),
                             username=username)                            
 
 @app.route('/CIIProfiler') 
@@ -387,10 +410,8 @@ def CIIProfiler():
     """ Displays CIIProfiler page with all available datasets in users compound folder.
     
     """
-    USER_COMPOUNDS_FOLDER = CIIProConfig.UPLOAD_FOLDER + '/' + g.user.username + '/compounds'
-    datasets = [dataset for dataset in os.listdir(USER_COMPOUNDS_FOLDER) if dataset[-4:] == '.txt']
     username = g.user.username
-    return render_template('CIIProfiler.html', username=username, datasets=datasets)
+    return render_template('CIIProfiler.html', username=username, datasets=g.user.get_user_datasets(set_type='training'))
 
 
 @app.route('/CIIPPredictor') 
@@ -405,7 +426,7 @@ def CIIPPredictor():
     profiles = [profile for profile in os.listdir(USER_PROFILES_FOLDER)]
     testsets = [testset for testset in os.listdir(USER_TEST_SETS_FOLDER) if testset[-4:] == '.txt']
     return render_template('CIIPPredictor.html', profiles=profiles, 
-                           username=g.user.username, testsets=testsets)	
+                           username=g.user.username, testsets=g.user.get_user_datasets(set_type='test'))	
 
 
 # TODO Create a save button to save optimized profile, allow for name
@@ -487,7 +508,7 @@ def CIIProfile():
             profile.to_csv(profile_filename, sep='\t')
             profile.to_csv(profile_filename.replace('profiles', 'biosims'), sep='\t')
 
-        datasets = [dataset for dataset in os.listdir(USER_COMPOUNDS_FOLDER) if dataset[-4:] == '.txt']
+
         stats_df = getIVIC(df['Activity'], profile)
 
         stats_df.to_csv(profile_filename.replace('_BioProfile', '_assay_stats').replace('profiles', 'biosims'), sep='\t')
@@ -499,7 +520,7 @@ def CIIProfile():
         session['cur_assay_dir'] = session['cur_prof_dir'].replace('_BioProfile', '_assay_stats')
         flash('Success! A profile was created consisting '
               'of {0} compounds and {1} bioassays'.format(profile.shape[0], profile.shape[1]), 'info')
-        return render_template('CIIProfiler.html', stats=~stats_df.empty, datasets=datasets)
+        return render_template('CIIProfiler.html', stats=~stats_df.empty, datasets=g.user.get_user_datasets(set_type='training'))
 
 
     
@@ -633,7 +654,7 @@ def CIIPPredict():
             session['cur_biosim_dir'] = USER_BIOSIMS_FOLDER + '/' +  profile_filename.replace('_BioProfile.txt', '')
             session['max_conf'] = len(bioprofile.columns)            
             return render_template('CIIPPredictor.html', cids=cids,
-                               preds=preds, acts=acts, len_cids=len_cids, profiles=profiles, testsets=testsets, 
+                               preds=preds, acts=acts, len_cids=len_cids, profiles=profiles, testsets=g.user.get_user_datasets(set_type='test'), 
                                NN_bool=NN_bool)  
 
 
@@ -666,7 +687,7 @@ def CIIProTools():
 
     USER_COMPOUND_FOLDER = CIIProConfig.UPLOAD_FOLDER + '/' + g.user.username + '/compounds'
     datasets = [dataset for dataset in os.listdir(USER_COMPOUND_FOLDER)]
-    return render_template('CIIProTools.html', datasets=datasets, 
+    return render_template('CIIProTools.html', datasets=g.user.get_user_datasets(set_type='training'), 
                            username=g.user.username)	
 
 @app.route('/activitycliffs', methods=['GET', 'POST']) 
@@ -692,7 +713,7 @@ def activitycliffs():
     writer.save()
     session['cur_ciff_dir'] = compound_directory.replace('compounds', 'NNs').replace('.txt', '.xlsx')
         
-    return render_template('CIIProTools.html', datasets=datasets, 
+    return render_template('CIIProTools.html', datasets=g.user.get_user_datasets(set_type='training'), 
                            username=g.user.username, ac=df.to_html())	
 
                                
