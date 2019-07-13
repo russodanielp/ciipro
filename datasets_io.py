@@ -6,9 +6,12 @@ import pandas as pd
 import os
 
 
-def write_ds_to_json(df: DataFrame, to_dir: str, name: str, identifier_type: str):
+def write_ds_to_json(df: DataFrame, to_dir: str, name: str, identifier_type: str, set_type='training'):
     """ writes a dataset to a json file.  dataset is a dataframe where the first column is an
-     identifier and the second is the corresponding activities """
+     identifier and the second is the corresponding activities
+
+      set_type: training or test
+      """
 
     # the json object will be a list of dictionaries, each dictionary contains
     # compound info
@@ -39,6 +42,7 @@ def write_ds_to_json(df: DataFrame, to_dir: str, name: str, identifier_type: str
     dataset['overview']['inactives'] = no_inactives
     dataset['overview']['identifier_type'] = identifier_type
     dataset['overview']['name'] = name
+    dataset['overview']['set_type'] = set_type
 
     to_dir  = os.path.join(to_dir, '{}.json'.format(name))
 
