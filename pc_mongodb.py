@@ -45,6 +45,9 @@ class PCCollection:
 
 compounds_db = PCCollection(pubchem.compounds)
 synonyms_db = PCCollection(pubchem.synonyms)
+outcomes_db = PCCollection(pubchem.outcomes)
+
+print(outcomes_db.query_list([2244], 'CID', ['AID']))
 
 # TEST_CMPS_IN = ['N-[3-keto-3-[(4-phenylthiazol-2-yl)amino]propyl]thiophene-2-carboxamide', 'N-[4-keto-4-[(4-phenylthiazol-2-yl)amino]butyl]thiophene-2-carboxamide', '3-(dimethylsulfamoyl)-N-ethyl-N-phenyl-benzamide']
 # TEST_CMPS_name = ['acetylcarnitine', 'O-acetylcarnitine', '2,3-dihydro-2,3-dihydroxybenzoic acid']
