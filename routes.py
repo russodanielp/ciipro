@@ -804,5 +804,16 @@ def internalServiceError(e):
     return render_template('500.html'), 500
 
 
+# this is where the RESTFul API will be
+
+
+@app.route('/test')
+def test():
+    test = g.user.get_user_datasets()
+    import json
+
+    return json.dumps(test)
+
+
 if __name__ == '__main__': #says if this scripts is run directly, start the application
 	app.run()
