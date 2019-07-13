@@ -26,6 +26,14 @@ class PCCollection:
     def query_list(self, query_list: List, query_field: str,
                    return_fields_list: List, return_id=False, return_query=True):
 
+        # TODO: make a copy of the outcomes database and convert all to integers
+        # TODO: so we can remove this conversion
+        # quick fix for querying the outcomes DB which are all in strings
+        # need to convert the CIDS to strings
+
+        field_type = type(self.col_ob.find_one()[query_field])
+        if field_type == str:
+            query_list = list(map(str, query_list))
 
         query = {"{}".format(query_field): {"$in": query_list}}
 
@@ -47,7 +55,7 @@ compounds_db = PCCollection(pubchem.compounds)
 synonyms_db = PCCollection(pubchem.synonyms)
 outcomes_db = PCCollection(pubchem.outcomes)
 
-print(outcomes_db.query_list([2244], 'CID', ['AID']))
+# print(outcomes_db.query_list([2244], 'CID', ['AID', 'Outcome']))
 
 # TEST_CMPS_IN = ['N-[3-keto-3-[(4-phenylthiazol-2-yl)amino]propyl]thiophene-2-carboxamide', 'N-[4-keto-4-[(4-phenylthiazol-2-yl)amino]butyl]thiophene-2-carboxamide', '3-(dimethylsulfamoyl)-N-ethyl-N-phenyl-benzamide']
 # TEST_CMPS_name = ['acetylcarnitine', 'O-acetylcarnitine', '2,3-dihydro-2,3-dihydroxybenzoic acid']
