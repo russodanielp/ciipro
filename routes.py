@@ -23,7 +23,7 @@ import pandas as pd
 import ciipro_io
 
 import datasets_io as ds_io
-
+import datasets as ds
 
 
 # TODO: go through each module and identifiy and take out passwords, security crucial information
@@ -94,6 +94,15 @@ class User(db.Model):
         return ds_io.get_datasets_names_for_user(self.get_user_folder('datasets'), set_type=set_type)
 
 
+    def load_dataset(self, ds_name):
+
+        """ load a dataset object given a dataset name for a user """
+
+        if (ds_name in self.get_user_datasets("training")) or (ds_name in self.get_user_datasets("test")):
+            ds_json_file = os.path.join(self.get_user_folder('datasets'), '{}.json'.format(ds_name))
+
+            json_ob = ds_io.load_json(ds_json_file)
+            return ds.make_dataset(json_ob)
     
 db.create_all()
 @login_manager.user_loader

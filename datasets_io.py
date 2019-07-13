@@ -54,7 +54,6 @@ def load_json(dir):
 
     with open(dir) as json_file:
         dataset = json.load(json_file)
-
     return dataset
 
 
