@@ -361,9 +361,9 @@ def uploaddataset():
         activities = list(map(int, activities))
 
         if input_type == 'cid':
-            identifiers = list(map(int, activities))
+            identifiers = list(map(int, identifiers))
         else:
-            identifiers = list(map(str, activities))
+            identifiers = list(map(str, identifiers))
 
         ds_io.write_ds_to_json(identifiers, activities, user_datasets_folder, name, input_type, set_type=model_type)
         os.remove(user_uploaded_file)

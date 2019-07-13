@@ -9,6 +9,6 @@ def parse_upload_file(filename):
         line = line.strip()
         identifiers.append(line.split('\t')[0])
         activities.append(line.split('\t')[1])
-
+    print(identifiers, activities)
     return identifiers, activities
 

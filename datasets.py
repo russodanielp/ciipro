@@ -27,7 +27,7 @@ class DataSet:
         """ converts identifier from the native """
 
         if self.id_type == 'cid':
-            return self.compounds
+            return compounds_db.query_list(self.compounds, 'CID', ['CID'])
         elif self.id_type == 'cas':
             return synonyms_db.query_list(self.cmopounds, 'Synonym', ['CID'])
         elif self.id_type == 'smiles':
@@ -74,11 +74,10 @@ def make_dataset(dataset_json):
     return DataSet(name, identifiers, activities, identifier_type)
 
 
-df = pd.read_csv('resources/ER_tutorial/ER_train_can.txt', sep='\t', header=None)
+if __name__ == '__main__':
+    import datasets_io
 
+    json_data = datasets_io.load_json(r'D:\ciipro\Guest\datasets\Carc_epoxides_aziridines.json')
+    ds = make_dataset(json_data)
 
-
-er = DataSet('er', df[0].values.tolist(), df[1].values.tolist(), identifier_type='smiles')
-
-print(er.get_bioprofile())
-
+    print(ds.get_bioprofile())
