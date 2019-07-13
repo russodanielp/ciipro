@@ -502,33 +502,31 @@ def CIIProfile():
             sort_by: Column to sort in vitro, in vivo correlations by
                 
     """
-    USER_COMPOUNDS_FOLDER = CIIProConfig.UPLOAD_FOLDER + '/' + g.user.username + '/compounds'
 
     if request.method == 'POST':
-        USER_FOLDER = CIIProConfig.UPLOAD_FOLDER + '/' + g.user.username
-        compound_filename = request.form['compound_filename']
-        compound_filename = str(compound_filename)
-        compound_file_directory = USER_FOLDER + '/compounds/' + compound_filename	
-        noOfActives = request.form['noOfActives']
-        noOfActives = str(noOfActives)
-        noOfActives = noOfActives.strip().split()
-        
-        if not noOfActives:
-            noOfActives = ['5']
 
-        df = pickle_to_pandas(compound_file_directory[:-11])
-        session['cur_comp_dir'] = compound_file_directory
+        ds_name = str(request.form['compound_filename'])
+        ds = g.user.load_dataset(ds_name)
+        min_actives = int(request.form['noOfActives'])
+        profile_filename = os.path.join(g.user.get_user_folder('profiles'),
+                                        '{}_{}.txt'.format(ds.name, min_actives))
 
-        profile_filename = USER_FOLDER + '/profiles/' + compound_filename[:-4] + '_BioProfile_{0}.txt'.format(noOfActives[0])
-        if os.path.isfile(profile_filename):
-            profile = bioprofile_to_pandas(profile_filename)
+        if os.path.exists(profile_filename):
+            profile = pd.read_csv(profile_filename, sep="\t")
         else:
-            profile = makeBioprofile(df, actives_cutoff=int(noOfActives[0]))
-            profile.to_csv(profile_filename, sep='\t')
-            profile.to_csv(profile_filename.replace('profiles', 'biosims'), sep='\t')
+            profile = ds.get_bioprofile(min_actives=min_actives)
 
 
-        stats_df = getIVIC(df['Activity'], profile)
+        act = ds.get_activities()
+
+        print(act)
+        print(act.dtype)
+
+
+        print(profile.head())
+        stats_df = getIVIC(act, profile)
+
+        print(stats_df)
 
         stats_df.to_csv(profile_filename.replace('_BioProfile', '_assay_stats').replace('profiles', 'biosims'), sep='\t')
         writer = getExcel(profile_filename.replace('profiles', 'biosims').replace('.txt', '.xlsx'))

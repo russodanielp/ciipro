@@ -519,10 +519,11 @@ def getClasses(act, aid):
     aid: A Pandas Series with bioactivity outcomes for CIDs in a particular PubChem AID
     """
     act[act == 0] = -1 # convert all activity responses from zeros to negative ones
-    aid_reduce = aid.iloc[aid.nonzero()[0]] 
-    u = act.index.intersection(aid_reduce.index)
 
-    union = (act[u] + aid_reduce[u])
+    cmps = aid[((aid == 1) | (aid == -1))].index
+
+    union = (act[cmps] + aid[cmps])
+
     TP = union[union > 0].count()
     TN = union[union < 0].count()
     
