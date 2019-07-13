@@ -2,7 +2,10 @@
 from typing import List
 
 import pandas as pd
-from pc_mongodb import compounds_db, synonyms_db
+from pc_mongodb import compounds_db, synonyms_db, outcomes_db
+
+import pandas as pd
+import numpy as np
 
 class DataSet:
 
@@ -24,7 +27,7 @@ class DataSet:
         """ converts identifier from the native """
 
         if self.id_type == 'cid':
-            return self.cmps
+            return self.compounds
         elif self.id_type == 'cas':
             return synonyms_db.query_list(self.cmopounds, 'Synonym', ['CID'])
         elif self.id_type == 'smiles':
@@ -33,7 +36,34 @@ class DataSet:
             return compounds_db.query_list(self.compounds, 'IUPAC Name Preferred', ['CID'])
 
     def get_assays(self):
-        """  """
+        """ queries the outcomes databases to get assays """
+
+        cids = [cmp['CID'] for cmp in self.get_cids()]
+        assays = outcomes_db.query_list(cids, 'CID', ['AID', 'Outcome'])
+        return assays
+
+    def get_bioprofile(self):
+
+        assays = self.get_assays()
+
+        # need to convert to numbers for pandas
+
+        assays_conerted = []
+        for assay_data in assays:
+            if assay_data['Outcome'] == 'Active':
+                assay_data['Outcome'] = 1
+            elif assay_data['Outcome'] == 'Inactive':
+                assay_data['Outcome'] = -1
+            else:
+                assay_data['Outcome'] = 0
+
+
+        # the agg funtion should give preferences to activtes
+        df = pd.DataFrame(assays).pivot_table(index='CID', columns='AID', values='Outcome', aggfunc=np.max)
+        return df.fillna(0)
+
+
+
 
 def make_dataset(dataset_json):
     """ takes the json of a dataset and makes a dataset object """
@@ -44,9 +74,11 @@ def make_dataset(dataset_json):
     return DataSet(name, identifiers, activities, identifier_type)
 
 
-df = pd.read_csv('resources/ER_tutorial/ER_test_can.txt', sep='\t', header=None)
+df = pd.read_csv('resources/ER_tutorial/ER_train_can.txt', sep='\t', header=None)
 
 
 
 er = DataSet('er', df[0].values.tolist(), df[1].values.tolist(), identifier_type='smiles')
+
+print(er.get_bioprofile())
 
