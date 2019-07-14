@@ -7,6 +7,8 @@ from pc_mongodb import compounds_db, synonyms_db, outcomes_db
 import pandas as pd
 import numpy as np
 
+import json
+
 class DataSet:
 
     def __init__(self, name: str,
@@ -74,6 +76,18 @@ class DataSet:
 
         return df.fillna(0)
 
+    @classmethod
+    def from_json(cls, json_filename):
+        with open(json_filename) as json_file:
+            json_data = json.load(json_file)
+
+        name = json_data['overview']['name']
+        identifier_type = json_data['overview']['identifier_type']
+        set_type = json_data['overview']['set_type']
+        identifiers = [compound['identifier'] for compound in json_data['compounds']]
+        activities = [compound['activity'] for compound in json_data['compounds']]
+        return DataSet(name, identifiers, activities, set_type, identifier_type)
+        return cls(json_data['name'], json_data['cids'], json_data['aids'], json_data['outcomes'])
 
 
 

@@ -108,7 +108,7 @@ class User(db.Model):
             ds_json_file = os.path.join(self.get_user_folder('datasets'), '{}.json'.format(ds_name))
 
             json_ob = ds_io.load_json(ds_json_file)
-            return ds.make_dataset(json_ob)
+            return ds.DataSet.from_json(json_ob)
 
 
     def load_bioprofile(self, bp_name):
