@@ -25,6 +25,8 @@ import ciipro_io
 import datasets_io as ds_io
 import datasets as ds
 
+import bioprofiles as bp
+
 
 # TODO: go through each module and identifiy and take out passwords, security crucial information
 
@@ -90,8 +92,12 @@ class User(db.Model):
         return folder
 
     def get_user_datasets(self, set_type="training"):
-        """ returns  """
+        """ returns the datasets for a users """
         return ds_io.get_datasets_names_for_user(self.get_user_folder('datasets'), set_type=set_type)
+
+    def get_user_bioprofiles(self, set_type="training"):
+        """ returns profiles for a user """
+        return ciipro_io.get_profiles_names_for_user(self.get_user_folder('profiles'))
 
 
     def load_dataset(self, ds_name):
@@ -103,6 +109,16 @@ class User(db.Model):
 
             json_ob = ds_io.load_json(ds_json_file)
             return ds.make_dataset(json_ob)
+
+
+    def load_bioprofile(self, bp_name):
+
+        """ load a dataset object given a dataset name for a user """
+
+        if bp_name in self.get_user_bioprofiles():
+            bp_json_file = os.path.join(self.get_user_folder('profiles'), '{}.json'.format(bp_name))
+
+            return bp.Bioprofile.from_json(bp_json_file)
     
 db.create_all()
 @login_manager.user_loader
