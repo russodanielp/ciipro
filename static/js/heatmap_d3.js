@@ -1,11 +1,15 @@
 
-function plotHeatMap() {
+function plotHeatMap(data) {
 
-    console.log("display")
+
+    // This is necessary for
+    d3.select("#heatmap").select("svg").remove();
+
+
     // set the dimensions and margins of the graph
     var margin = {top: 30, right: 30, bottom: 30, left: 30},
-      width = 450 - margin.left - margin.right,
-      height = 450 - margin.top - margin.bottom;
+      width = 750 - margin.left - margin.right,
+      height = 750 - margin.top - margin.bottom;
 
     // append the svg object to the body of the page
     var svg = d3.select("#heatmap")
@@ -16,14 +20,19 @@ function plotHeatMap() {
       .attr("transform",
             "translate(" + margin.left + "," + margin.top + ")");
 
+    function onlyUnique(value, index, self) {
+    return self.indexOf(value) === index;
+    }
+
+    // unique CIDS
+    var cids = data.cids;
+    var aids = data.aids;
     // Labels of row and columns
-    var myGroups = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
-    var myVars = ["v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10"]
 
     // Build X scales and axis:
     var x = d3.scaleBand()
       .range([ 0, width ])
-      .domain(myGroups)
+      .domain(aids)
       .padding(0.01);
     svg.append("g")
       .attr("transform", "translate(0," + height + ")")
@@ -32,28 +41,28 @@ function plotHeatMap() {
     // Build X scales and axis:
     var y = d3.scaleBand()
       .range([ height, 0 ])
-      .domain(myVars)
+      .domain(cids)
       .padding(0.01);
     svg.append("g")
       .call(d3.axisLeft(y));
 
     // Build color scale
-    var myColor = d3.scaleLinear()
-      .range(["white", "#69b3a2"])
-      .domain([1,100])
+    var myColor = d3.scaleOrdinal()
+      .range(["blue", "white", "red"])
+      .domain([-1,0,1])
 
-    //Read the data
-    d3.csv("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/heatmap_data.csv", function(data) {
+    var dataPlot = data.cids.map(function(e, i) {
+          return [e, data.aids[i], data.outcomes[i]];
+        });
+    console.log(dataPlot)
+    svg.selectAll()
+      .data(dataPlot)
+      .enter()
+      .append("rect")
+      .attr("x", function(d, i) { return x(d[1]) })
+      .attr("y", function(d, i) { return y(d[0]) })
+      .attr("width", x.bandwidth() )
+      .attr("height", y.bandwidth() )
+      .style("fill", function(d) { return myColor(d[2])} )
 
-      svg.selectAll()
-          .data(data, function(d) {return d.group+':'+d.variable;})
-          .enter()
-          .append("rect")
-          .attr("x", function(d) { return x(d.group) })
-          .attr("y", function(d) { return y(d.variable) })
-          .attr("width", x.bandwidth() )
-          .attr("height", y.bandwidth() )
-          .style("fill", function(d) { return myColor(d.value)} )
-
-    })
 }

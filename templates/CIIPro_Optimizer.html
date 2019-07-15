@@ -1,0 +1,99 @@
+{% extends "template.html" %}
+{% block content %}
+
+		{% if error %}
+			<p class="error"><strong>Error:</strong> {{ error }}</p>
+		{% endif %}
+<style>
+	div.profile {
+
+    padding-left: 100px;
+}
+</style>
+
+<div class="profile">
+<form action="/optimize" method="post" enctype="multipart/form-data">
+		<div class="row">
+			<div class="col-sm-4">
+				<div class="panel panel-primary">
+					{% if profiles %}
+					<div class="panel-heading">
+						<h3 class="panel-title">Profile to work with</b>:<br></h3>
+					</div>
+					<div class="panel-body">
+                    <select id="profile-selection">
+						{% for profile in profiles %}
+
+
+                           <option value={{ profile }}>{{ profile }}</option>
+
+
+                        {% endfor %}
+                    </select>
+					</div>
+					{% endif %}
+					{% if not profiles %}
+					<div class="panel panel-heading">
+						<h3 class="panel-title">No datasets available for <b>{{ username }}.</b></h3>
+					</div>
+					<div class="panel-body">
+						Please upload a data set to profile.
+					</div>
+					{% endif %}
+				</div>
+			</div>
+		</div>
+
+        <div class="row">
+            <div class="col-12">
+
+
+            <div id="heatmap"></div>
+            <div id="profile">
+
+            </div>
+
+            </div>
+        </div>
+{#		<input type="submit" class="btn btn-primary" value="Profile" name="user_input"/>#}
+		</form>
+
+
+
+</div>
+
+    <script src="../static/js/heatmap_d3.js"></script>
+    <script src="https://d3js.org/d3.v4.js"></script>
+    <script src="../static/js/requests.js"></script>
+
+    <script>
+
+
+
+
+        var e = document.getElementById("profile-selection");
+        var currentProfile = e.options[e.selectedIndex].value;
+
+        var queryUrl = "http://127.0.0.1:5000/get_bioprofile/" + currentProfile;
+        var profile_data = JSON.parse(getResponseFromURL(queryUrl));
+        plotHeatMap(profile_data);
+
+        e.addEventListener("change", function() {
+            var e = document.getElementById("profile-selection");
+            var currentProfile = e.options[e.selectedIndex].value;
+            var queryUrl = "http://127.0.0.1:5000/get_bioprofile/" + currentProfile;
+            var profile_data = JSON.parse(getResponseFromURL(queryUrl));
+            plotHeatMap(profile_data);
+        });
+
+
+    </script>
+
+{% endblock %}
+
+
+
+
+
+
+

@@ -7,7 +7,7 @@ from pc_mongodb import compounds_db, synonyms_db, outcomes_db
 import pandas as pd
 import numpy as np
 
-import json
+import json, os
 import scipy.sparse as sps
 
 class DataSet:
@@ -78,13 +78,18 @@ class DataSet:
         df = df.unstack().reset_index(name='value').dropna()
 
         df = df.rename(index=str, columns={"CID": "cids", "AID": "aids", "value": "outcomes"})
-        print(df)
+
         json_ob = df.to_dict('list')
 
         for col in ['cids', 'aids', 'outcomes']:
             json_ob[col] = list(map(int, json_ob[col]))
 
         return json_ob
+
+    def to_json(self, profiles_dir: str):
+        with open(os.path.join(profiles_dir, '{}.json'.format(self.name))) as json_file:
+            json_data = json.load(json_file)
+        return json_data
 
     @classmethod
     def from_json(cls, json_filename):

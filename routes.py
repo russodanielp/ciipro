@@ -336,7 +336,8 @@ def datasets():
     
     """
     username = g.user.username
-    return render_template('datasets.html', datasets=g.user.get_user_datasets(set_type='training'), testsets=g.user.get_user_datasets(set_type='test'),
+    return render_template('datasets.html', datasets=g.user.get_user_datasets(set_type='training'),
+                           testsets=g.user.get_user_datasets(set_type='test'),
                           username=username)
                            
                            
@@ -435,7 +436,8 @@ def deletedataset():
     datasets = [ds for ds in os.listdir(USER_COMPOUNDS_FOLDER)]
     testsets = [ts for ts in os.listdir(USER_TEST_SETS_FOLDER)]
 
-    return render_template('datasets.html', datasets=g.user.get_user_datasets(set_type='training'), testsets=g.user.get_user_datasets(set_type='test'),
+    return render_template('datasets.html', datasets=g.user.get_user_datasets(set_type='training'),
+                           testsets=g.user.get_user_datasets(set_type='test'),
                             username=username)                            
 
 @app.route('/CIIProfiler') 
@@ -444,7 +446,8 @@ def CIIProfiler():
     """ Displays CIIProfiler page with all available datasets in users compound folder.
     
     """
-    return render_template('CIIProfiler.html', username=g.user.username, datasets=g.user.get_user_datasets(set_type='training'))
+    return render_template('CIIProfiler.html', username=g.user.username,
+                           datasets=g.user.get_user_datasets(set_type='training'))
 
 
 @app.route('/CIIPPredictor') 
@@ -459,22 +462,16 @@ def CIIPPredictor():
 
 
 # TODO Create a save button to save optimized profile, allow for name
-@app.route('/optimizeprofile')
+@app.route('/CIIPro_Optimizer', methods=['POST', 'GET'])
 @login_required
-def optimizeprofile():
+def CIIPro_Optimizer():
     """ Renderts optimize bioprofile
     """
-    profile = bioprofile_to_pandas(session['cur_prof_dir'])
-    stats_df = pd.read_csv(session['cur_assay_dir'], sep='\t', index_col=0)
-    stats = dataTable_bokeh(stats_df)
-    hm = bokehHeatmap(profile)
 
 
-    return render_template('optimizeprofile.html',
-                           hm=hm,
-                           stats=stats,
-                           aids=profile.columns.tolist()
-                           )
+    return render_template('CIIPro_Optimizer.html',
+                           profiles=g.user.get_user_bioprofiles(),
+                           username=g.user.username)
 
 def allowed_file(filename): #method that checks to see if upload file is allowed
     return '.' in filename and filename.rsplit('.', 1)[1] in CIIProConfig.ALLOWED_EXTENSIONS
@@ -526,28 +523,40 @@ def CIIProfile():
         else:
             bioprofile_json = ds.get_bioprofile(min_actives=min_actives)
 
+            act = ds.get_activities()
+
+            # TODO a better way to tdo this
+
             bioprofile = bp.Bioprofile(profile_name,
                                        bioprofile_json['cids'],
                                        bioprofile_json['aids'],
-                                       bioprofile_json['outcomes'])
+                                       bioprofile_json['outcomes'], None)
+
+            profile_matrix = bioprofile.to_frame()
+            stats_df = getIVIC(act, profile_matrix)
+            stats_df.reset_index(inplace=True)
+            stats_df = stats_df.rename(str, columns={"index": "aid"})
+
+
+            # this has to happen to store AIDs as attributes in JSON
+            stats_df.index = list(map(str, stats_df.index))
+
+            bioprofile = bp.Bioprofile(profile_name,
+                                       bioprofile_json['cids'],
+                                       bioprofile_json['aids'],
+                                       bioprofile_json['outcomes'], stats_df.to_dict('records'))
+
 
             bioprofile.to_json(g.user.get_user_folder('profiles'))
 
-        act = ds.get_activities()
+
 
         profile_matrix = bioprofile.to_frame()
-        stats_df = getIVIC(act, profile_matrix)
 
-        # stats_df.to_csv(profile_filename.replace('_BioProfile', '_assay_stats').replace('profiles', 'biosims'), sep='\t')
-        # writer = getExcel(profile_filename.replace('profiles', 'biosims').replace('.txt', '.xlsx'))
-        # profile.to_excel(writer, 'Bioprofile')
-        # stats_df.to_excel(writer, 'In vitro-in vivo correlations')
-        # writer.save()
-        # session['cur_prof_dir'] = profile_filename.replace('profiles', 'biosims')
-        # session['cur_assay_dir'] = session['cur_prof_dir'].replace('_BioProfile', '_assay_stats')
+
         flash('Success! A profile was created consisting '
               'of {0} compounds and {1} bioassays'.format(profile_matrix.shape[0], profile_matrix.shape[1]), 'info')
-        return render_template('CIIProfiler.html', stats=~stats_df.empty, datasets=g.user.get_user_datasets(set_type='training'))
+        return render_template('CIIProfiler.html', stats=None, datasets=g.user.get_user_datasets(set_type='training'))
 
 
     
@@ -817,13 +826,14 @@ def internalServiceError(e):
 # this is where the RESTFul API will be
 
 
-@app.route('/test')
-def test():
-    test = g.user.get_user_datasets()
-    import json
-
-    return json.dumps(test)
-
+@app.route('/get_bioprofile/<profile_name>')
+def get_bioprofile(profile_name):
+    json_filename = os.path.join(g.user.get_user_folder('profiles'), '{}.json'.format(profile_name))
+    with open(json_filename) as json_file:
+        json_data = json.load(json_file)
+    print(json_data)
+    print(json.dumps(json_data))
+    return json.dumps(json_data)
 
 if __name__ == '__main__': #says if this scripts is run directly, start the application
 	app.run()
