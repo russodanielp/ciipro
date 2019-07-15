@@ -444,8 +444,7 @@ def CIIProfiler():
     """ Displays CIIProfiler page with all available datasets in users compound folder.
     
     """
-    username = g.user.username
-    return render_template('CIIProfiler.html', username=username, datasets=g.user.get_user_datasets(set_type='training'))
+    return render_template('CIIProfiler.html', username=g.user.username, datasets=g.user.get_user_datasets(set_type='training'))
 
 
 @app.route('/CIIPPredictor') 
@@ -455,11 +454,7 @@ def CIIPPredictor():
     
     """
 
-    USER_PROFILES_FOLDER = CIIProConfig.UPLOAD_FOLDER + '/' + g.user.username + '/profiles'
-    USER_TEST_SETS_FOLDER = CIIProConfig.UPLOAD_FOLDER + '/' + g.user.username + '/test_sets'
-    profiles = [profile for profile in os.listdir(USER_PROFILES_FOLDER)]
-    testsets = [testset for testset in os.listdir(USER_TEST_SETS_FOLDER) if testset[-4:] == '.txt']
-    return render_template('CIIPPredictor.html', profiles=profiles, 
+    return render_template('CIIPPredictor.html', profiles=g.user.get_user_bioprofiles(),
                            username=g.user.username, testsets=g.user.get_user_datasets(set_type='test'))	
 
 
