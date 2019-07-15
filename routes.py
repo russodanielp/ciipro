@@ -523,8 +523,7 @@ def CIIProfile():
         ds_name = str(request.form['compound_filename'])
         ds = g.user.load_dataset(ds_name)
         min_actives = int(request.form['noOfActives'])
-
-        profile_name = 'profile_filename'
+        profile_name = str(request.form['profile_filename'])
 
         bioprofile_json_filename = os.path.join(g.user.get_user_folder('profiles'), '{}.json'.format(profile_name))
         if os.path.exists(bioprofile_json_filename):
@@ -541,15 +540,8 @@ def CIIProfile():
 
         act = ds.get_activities()
 
-        print(act)
-        print(act.dtype)
-
-
         profile_matrix = bioprofile.to_frame()
         stats_df = getIVIC(act, profile_matrix)
-
-        print(profile_matrix.head())
-        print(stats_df.head())
 
         # stats_df.to_csv(profile_filename.replace('_BioProfile', '_assay_stats').replace('profiles', 'biosims'), sep='\t')
         # writer = getExcel(profile_filename.replace('profiles', 'biosims').replace('.txt', '.xlsx'))

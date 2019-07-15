@@ -55,6 +55,9 @@
 						<br>
 						<b>Recommended:</b> Between 6-10<br>
 						<input type="number" value="6" name="noOfActives" min="0" max="30" step="1"/> <br>
+						Please give a name for this profile:<br>
+						<br>
+                        <input type="text" id="profile_filename" name="profile_filename"/>
 
 					</div>
 				</div>
@@ -73,5 +76,21 @@
 		</div>
     	{% endif %}
 </div>
+
+    <script>
+    n =  new Date();
+    y = n.getFullYear();
+    m = n.getMonth() + 1;
+    d = n.getDate();
+
+
+
+    // add event listenter to selected
+
+    document.getElementById("profile_filename").value = "profile_" + m + "_" + d + "_" + y;
+
+
+
+    </script>
 
 {% endblock %}
