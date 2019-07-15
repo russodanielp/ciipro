@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+
+    <script src="../static/js/heatmap_d3.js"></script>
+    <script src="https://d3js.org/d3.v4.js"></script>
+
+    <div class="row">
+        <div class="col-12">
+            <select id="selection">
+
+                <option value="profile1">profile1</option>
+                <option value="profile2">profile2</option>
+                <option value="profile3">profile3</option>
+                <option value="profile4">profile4</option>
+
+
+
+            </select>
+
+        <div id="heatmap"></div>
+        <div id="profile">
+            No. of Compounds:
+        </div>
+
+        </div>
+    </div>
+    <script>
+
+
+        console.log("display");
+        plotHeatMap();
+
+        d3.json("../resources/my_profile.json", function(data) {
+        console.log(data.aids);
+        });
+
+
+    </script>
+
+
+</body>
+</html>
