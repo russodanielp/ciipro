@@ -43,7 +43,12 @@ class Bioprofile:
         }
 
         df = pd.DataFrame(data)
-        return df.pivot_table(index='cids', columns='aids', values='outcomes', aggfunc=np.max).fillna(0)
+
+        profile = df.pivot_table(index='cids', columns='aids', values='outcomes', aggfunc=np.max).fillna(0)
+
+        profile.index = list(map(int, profile.index))
+        profile.columns = list(map(int, profile.columns))
+        return profile
 
     @classmethod
     def from_json(cls, json_filename):

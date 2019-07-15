@@ -107,8 +107,7 @@ class User(db.Model):
         if (ds_name in self.get_user_datasets("training")) or (ds_name in self.get_user_datasets("test")):
             ds_json_file = os.path.join(self.get_user_folder('datasets'), '{}.json'.format(ds_name))
 
-            json_ob = ds_io.load_json(ds_json_file)
-            return ds.DataSet.from_json(json_ob)
+            return ds.DataSet.from_json(ds_json_file)
 
 
     def load_bioprofile(self, bp_name):
@@ -524,14 +523,21 @@ def CIIProfile():
         ds_name = str(request.form['compound_filename'])
         ds = g.user.load_dataset(ds_name)
         min_actives = int(request.form['noOfActives'])
-        profile_filename = os.path.join(g.user.get_user_folder('profiles'),
-                                        '{}_{}.txt'.format(ds.name, min_actives))
 
-        if os.path.exists(profile_filename):
-            profile = pd.read_csv(profile_filename, sep="\t")
+        profile_name = 'profile_filename'
+
+        bioprofile_json_filename = os.path.join(g.user.get_user_folder('profiles'), '{}.json'.format(profile_name))
+        if os.path.exists(bioprofile_json_filename):
+            bioprofile = bp.Bioprofile.from_json(bioprofile_json_filename)
         else:
-            profile = ds.get_bioprofile(min_actives=min_actives)
+            bioprofile_json = ds.get_bioprofile(min_actives=min_actives)
 
+            bioprofile = bp.Bioprofile(profile_name,
+                                       bioprofile_json['cids'],
+                                       bioprofile_json['aids'],
+                                       bioprofile_json['outcomes'])
+
+            bioprofile.to_json(g.user.get_user_folder('profiles'))
 
         act = ds.get_activities()
 
@@ -539,20 +545,21 @@ def CIIProfile():
         print(act.dtype)
 
 
-        print(profile.head())
-        stats_df = getIVIC(act, profile)
+        profile_matrix = bioprofile.to_frame()
+        stats_df = getIVIC(act, profile_matrix)
 
-        print(stats_df)
+        print(profile_matrix.head())
+        print(stats_df.head())
 
-        stats_df.to_csv(profile_filename.replace('_BioProfile', '_assay_stats').replace('profiles', 'biosims'), sep='\t')
-        writer = getExcel(profile_filename.replace('profiles', 'biosims').replace('.txt', '.xlsx'))
-        profile.to_excel(writer, 'Bioprofile')
-        stats_df.to_excel(writer, 'In vitro-in vivo correlations')
-        writer.save()
-        session['cur_prof_dir'] = profile_filename.replace('profiles', 'biosims')
-        session['cur_assay_dir'] = session['cur_prof_dir'].replace('_BioProfile', '_assay_stats')
+        # stats_df.to_csv(profile_filename.replace('_BioProfile', '_assay_stats').replace('profiles', 'biosims'), sep='\t')
+        # writer = getExcel(profile_filename.replace('profiles', 'biosims').replace('.txt', '.xlsx'))
+        # profile.to_excel(writer, 'Bioprofile')
+        # stats_df.to_excel(writer, 'In vitro-in vivo correlations')
+        # writer.save()
+        # session['cur_prof_dir'] = profile_filename.replace('profiles', 'biosims')
+        # session['cur_assay_dir'] = session['cur_prof_dir'].replace('_BioProfile', '_assay_stats')
         flash('Success! A profile was created consisting '
-              'of {0} compounds and {1} bioassays'.format(profile.shape[0], profile.shape[1]), 'info')
+              'of {0} compounds and {1} bioassays'.format(profile_matrix.shape[0], profile_matrix.shape[1]), 'info')
         return render_template('CIIProfiler.html', stats=~stats_df.empty, datasets=g.user.get_user_datasets(set_type='training'))
 
 

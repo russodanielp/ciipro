@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 
 import json
+import scipy.sparse as sps
 
 class DataSet:
 
@@ -69,12 +70,21 @@ class DataSet:
             assay_data['CID'] = int(assay_data['CID'])
             assay_data['AID'] = int(assay_data['AID'])
 
-        # the agg funtion should give preferences to activtes
+        # the agg function should give preferences to activtes
         df = pd.DataFrame(assays).pivot_table(index='CID', columns='AID', values='Outcome', aggfunc=np.max)
 
-        df = df.loc[:, ((df == 1).sum() >= min_actives)]
+        df = df.loc[:, ((df == 1).sum() >= min_actives)].replace(0, np.nan)
 
-        return df.fillna(0)
+        df = df.unstack().reset_index(name='value').dropna()
+
+        df = df.rename(index=str, columns={"CID": "cids", "AID": "aids", "value": "outcomes"})
+        print(df)
+        json_ob = df.to_dict('list')
+
+        for col in ['cids', 'aids', 'outcomes']:
+            json_ob[col] = list(map(int, json_ob[col]))
+
+        return json_ob
 
     @classmethod
     def from_json(cls, json_filename):
@@ -109,5 +119,5 @@ if __name__ == '__main__':
 
     json_data = datasets_io.load_json(r'D:\ciipro\Guest\datasets\Carc_epoxides_aziridines.json')
     ds = make_dataset(json_data)
-
-    print((ds.get_bioprofile(min_actives=1) == -1).sum())
+    ds.get_bioprofile()
+    #print(ds.get_bioprofile())
