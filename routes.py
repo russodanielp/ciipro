@@ -530,12 +530,19 @@ def CIIProfile():
             bioprofile = bp.Bioprofile(profile_name,
                                        bioprofile_json['cids'],
                                        bioprofile_json['aids'],
-                                       bioprofile_json['outcomes'], None)
+                                       bioprofile_json['outcomes'], None, None)
 
             profile_matrix = bioprofile.to_frame()
             stats_df = getIVIC(act, profile_matrix)
             stats_df.reset_index(inplace=True)
             stats_df = stats_df.rename(str, columns={"index": "aid"})
+
+            meta = {}
+            meta['training_set'] = ds_name
+            meta['num_total_actives'] = profile_matrix[profile_matrix == 1].sum().sum()
+            meta['num_total_inactives'] = profile_matrix[profile_matrix == -1].sum().sum()
+            meta['num_cmps'] = profile_matrix.shape[0]
+            meta['num_aids'] = profile_matrix.shape[1]
 
 
             # this has to happen to store AIDs as attributes in JSON
@@ -544,7 +551,7 @@ def CIIProfile():
             bioprofile = bp.Bioprofile(profile_name,
                                        bioprofile_json['cids'],
                                        bioprofile_json['aids'],
-                                       bioprofile_json['outcomes'], stats_df.to_dict('records'))
+                                       bioprofile_json['outcomes'], stats_df.to_dict('records'), meta)
 
 
             bioprofile.to_json(g.user.get_user_folder('profiles'))
@@ -831,8 +838,6 @@ def get_bioprofile(profile_name):
     json_filename = os.path.join(g.user.get_user_folder('profiles'), '{}.json'.format(profile_name))
     with open(json_filename) as json_file:
         json_data = json.load(json_file)
-    print(json_data)
-    print(json.dumps(json_data))
     return json.dumps(json_data)
 
 if __name__ == '__main__': #says if this scripts is run directly, start the application

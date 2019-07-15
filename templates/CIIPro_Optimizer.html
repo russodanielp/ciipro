@@ -21,15 +21,22 @@
 						<h3 class="panel-title">Profile to work with</b>:<br></h3>
 					</div>
 					<div class="panel-body">
-                    <select id="profile-selection">
-						{% for profile in profiles %}
+                        <div class="col-sm-4">
+                        <select id="profile-selection">
+                            {% for profile in profiles %}
 
 
-                           <option value={{ profile }}>{{ profile }}</option>
+                               <option value={{ profile }}>{{ profile }}</option>
 
 
-                        {% endfor %}
-                    </select>
+                            {% endfor %}
+                        </select>
+                        </div>
+                        <div class="col-sm-4">
+                            <h5 id="ts_used">Training Set Used: </h5>
+                            <h5 id="num_cmps">Num Compounds: </h5>
+                            <h5 id="num_aids">Num Assays: </h5>
+                        </div>
 					</div>
 					{% endif %}
 					{% if not profiles %}
@@ -49,7 +56,7 @@
 
 
             <div id="heatmap"></div>
-            <div id="profile">
+            <div id="table">
 
             </div>
 
@@ -76,6 +83,21 @@
 
         var queryUrl = "http://127.0.0.1:5000/get_bioprofile/" + currentProfile;
         var profile_data = JSON.parse(getResponseFromURL(queryUrl));
+
+        var tsElement = document.getElementById('ts_used');
+        var tsText = document.createTextNode(profile_data.meta.training_set);
+        tsElement.appendChild(tsText);
+
+        var cmpsElement = document.getElementById('num_cmps');
+        var cmpsText = document.createTextNode(profile_data.meta.num_cmps);
+        cmpsElement.appendChild(cmpsText);
+
+        var aidsElement = document.getElementById('num_aids');
+        var aidsText = document.createTextNode(profile_data.meta.num_aids);
+        aidsElement.appendChild(aidsText);
+
+
+
         plotHeatMap(profile_data);
 
         e.addEventListener("change", function() {
@@ -84,6 +106,24 @@
             var queryUrl = "http://127.0.0.1:5000/get_bioprofile/" + currentProfile;
             var profile_data = JSON.parse(getResponseFromURL(queryUrl));
             plotHeatMap(profile_data);
+
+            var tsElement = document.getElementById('ts_used');
+            var tsText = tsEleme
+            tsElement.appendChild(tsText);
+
+            var cmpsElement = document.getElementById('num_cmps');
+            var cmpsText = document.createTextNode(profile_data.meta.num_cmps);
+            cmpsElement.appendChild(cmpsText);
+
+            var aidsElement = document.getElementById('num_aids');
+            var aidsText = document.createTextNode(profile_data.meta.num_aids);
+            aidsElement.appendChild(aidsText);
+
+
+
+
+
+
         });
 
 
