@@ -79,8 +79,8 @@ class User(db.Model):
     def __repr__(self):
         return '<User %r>' % (self.username)
 
-
-    # I added these functions
+    # I added these functions,
+    # very helpful to probably bring a lot of stuff into this class
 
     def get_user_folder(self, folder_name):
 
@@ -506,7 +506,7 @@ def CIIProfile():
             bioprofile_json = ds.get_bioprofile(min_actives=min_actives)
 
             act = ds.get_activities(use_cids=True)
-
+            print(act)
             # TODO a better way to tdo this
 
             bioprofile = bp.Bioprofile(profile_name,
@@ -520,11 +520,11 @@ def CIIProfile():
             stats_df = stats_df.rename(str, columns={"index": "aid"})
 
             meta = {}
-            meta['training_set'] = ds_name
-            meta['num_total_actives'] = (profile_matrix == 1).sum().sum()
-            meta['num_total_inactives'] = (profile_matrix == -1).sum().sum()
-            meta['num_cmps'] = profile_matrix.shape[0]
-            meta['num_aids'] = profile_matrix.shape[1]
+            meta['training_set'] = str(ds_name)
+            meta['num_total_actives'] = int((profile_matrix == 1).sum().sum())
+            meta['num_total_inactives'] = int((profile_matrix == -1).sum().sum())
+            meta['num_cmps'] = int(profile_matrix.shape[0])
+            meta['num_aids'] = int(profile_matrix.shape[1])
 
 
             # this has to happen to store AIDs as attributes in JSON
@@ -541,6 +541,9 @@ def CIIProfile():
 
 
         profile_matrix = bioprofile.to_frame()
+
+
+        profile_matrix.to_csv('{}.csv'.format(bioprofile.name))
 
 
         flash('Success! A profile was created consisting '
@@ -565,51 +568,34 @@ def CIIPPredict():
 
     if request.method == 'POST':
         if request.form['Submit'] == 'Delete':
-            USER_FOLDER = CIIProConfig.UPLOAD_FOLDER + '/' + g.user.username
-            USER_PROFILES_FOLDER = USER_FOLDER +'/profiles'
-            profile_filename = request.form['profile_filename']
-            os.remove(USER_PROFILES_FOLDER + '/' + profile_filename)
-            return redirect(url_for('CIIPPredictor'))    
+
+            profile_filename = '{}.json'.format(str(request.form['profile_filename']))
+            os.remove(os.path.join(g.user.get_user_folder('profiles'), profile_filename))
+            return redirect(url_for('CIIPPredictor'))
+
         elif request.form['Submit'] == 'Submit':
-            USER_FOLDER = CIIProConfig.UPLOAD_FOLDER + '/' + g.user.username
-            USER_PROFILES_FOLDER = USER_FOLDER +'/profiles'
-            USER_COMPOUNDS_FOLDER = USER_FOLDER +'/compounds'
-            USER_BIOSIMS_FOLDER =  USER_FOLDER +'/biosims'
-            USER_TEST_SET_FOLDER = USER_FOLDER +'/test_sets'
-            USER_NN_FOLDER = USER_FOLDER + '/NNs'
 
             profile_filename = request.form['profile_filename']
-            profile_filename = str(profile_filename)
-            profile_directory = USER_PROFILES_FOLDER + '/' + profile_filename
-
             compound_filename = request.form['compound_filename']
-            compound_filename = str(compound_filename)
-            compound_directory = USER_TEST_SET_FOLDER + '/' + compound_filename
 
-            cutoff = request.form['cutoff']
-            cutoff = str(cutoff)
-            cutoff = cutoff.strip().split()
-            if not cutoff:
-                cutoff = [0.5]
-        
-            confidence = request.form['conf']
-            confidence = str(confidence)
-            confidence = confidence.strip().split()
-            if not confidence:
-                confidence = [4]
-            
-            confidence[0] = float(confidence[0])*0
-        
-            nns = request.form['nns']
+            cutoff = float(request.form['cutoff'])
+            confidence = float(request.form['conf'])
+            nns = float(request.form['nns'])
 
-            training_filename = profile_filename.split('_BioProfile')[0] + '.txt'
+            training_profile = g.user.load_bioprofile(profile_filename)
 
-            bioprofile = bioprofile_to_pandas(profile_directory)
-            test = pickle_to_pandas(compound_directory[:-11])
-            # if os.path.isfile(USER_BIOSIMS_FOLDER + '/' +
-            #                           profile_filename.replace('_BioProfile', '_BioSim_{0}_{1}_{2}'.format(cutoff[0],
-            #                                                                                                confidence[0], nns))):
-            #     biosims = pd.read_csv(profile_filename.replace('_BioProfile', '_BioSim_{0}_{1}_{2}'.format(cutoff[0], confidence[0], nns)), sep='\t', index_col=0)
+            training_matrix = training_profile.to_frame()
+
+            training_data = g.user.load_dataset(training_profile.meta['training_set'])
+
+            test_data = g.user.load_dataset(compound_filename)
+
+
+
+            # get a full test set profile
+            print(training_data, test_data)
+
+            print(test_data.get_bioprofile())
 
             biosims, conf = get_BioSim(bioprofile, test)
             biosims.to_csv(USER_BIOSIMS_FOLDER + '/' +  profile_filename.replace('_BioProfile', '_BioSim_{0}_{1}_{2}'.format(cutoff[0], confidence[0], nns)), sep='\t')
