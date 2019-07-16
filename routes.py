@@ -505,7 +505,7 @@ def CIIProfile():
         else:
             bioprofile_json = ds.get_bioprofile(min_actives=min_actives)
 
-            act = ds.get_activities()
+            act = ds.get_activities(use_cids=True)
 
             # TODO a better way to tdo this
 
@@ -521,8 +521,8 @@ def CIIProfile():
 
             meta = {}
             meta['training_set'] = ds_name
-            meta['num_total_actives'] = profile_matrix[profile_matrix == 1].sum().sum()
-            meta['num_total_inactives'] = profile_matrix[profile_matrix == -1].sum().sum()
+            meta['num_total_actives'] = (profile_matrix == 1).sum().sum()
+            meta['num_total_inactives'] = (profile_matrix == -1).sum().sum()
             meta['num_cmps'] = profile_matrix.shape[0]
             meta['num_aids'] = profile_matrix.shape[1]
 

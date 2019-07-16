@@ -21,7 +21,7 @@
 						<h3 class="panel-title">Profile to work with</b>:<br></h3>
 					</div>
 					<div class="panel-body">
-                        <div class="col-sm-4">
+                        <div class="col-sm-12">
                         <select id="profile-selection">
                             {% for profile in profiles %}
 
@@ -31,11 +31,13 @@
 
                             {% endfor %}
                         </select>
-                        </div>
-                        <div class="col-sm-4">
-                            <h5 id="ts_used">Training Set Used: </h5>
-                            <h5 id="num_cmps">Num Compounds: </h5>
-                            <h5 id="num_aids">Num Assays: </h5>
+                        <br>
+                        <h3><b>Profile Overview: </b></h3>
+                            <h6 id="ts_used"><b>Training Set Used: </b> <div id="this_ts"></div></h6>
+                            <h6 id="num_cmps"><b>Num Compounds: </b> <div id="cmps"></div></h6>
+                            <h6 id="num_aids"><b>Num Assays: </b> <div id="aids"></div></h6>
+                            <h6 id="total_acts"><b>Total Active Responses: </b><div id="tot_acts"></div></h6>
+                            <h6 id="total_inacts"><b>Total Inactive Responses: </b><div id="tot_inacts"></div></h6>
                         </div>
 					</div>
 					{% endif %}
@@ -84,19 +86,20 @@
         var queryUrl = "http://127.0.0.1:5000/get_bioprofile/" + currentProfile;
         var profile_data = JSON.parse(getResponseFromURL(queryUrl));
 
-        var tsElement = document.getElementById('ts_used');
-        var tsText = document.createTextNode(profile_data.meta.training_set);
-        tsElement.appendChild(tsText);
+        var tsElement = document.getElementById('this_ts');
+        tsElement.innerHTML = profile_data.meta.training_set;
 
-        var cmpsElement = document.getElementById('num_cmps');
-        var cmpsText = document.createTextNode(profile_data.meta.num_cmps);
-        cmpsElement.appendChild(cmpsText);
+        var tsElement = document.getElementById('cmps');
+        tsElement.innerHTML = profile_data.meta.num_cmps;
 
-        var aidsElement = document.getElementById('num_aids');
-        var aidsText = document.createTextNode(profile_data.meta.num_aids);
-        aidsElement.appendChild(aidsText);
+        var tsElement = document.getElementById('aids');
+        tsElement.innerHTML = profile_data.meta.num_aids;
 
+        var tsElement = document.getElementById('tot_acts');
+        tsElement.innerHTML = profile_data.meta.num_total_actives;
 
+        var tsElement = document.getElementById('tot_inacts');
+        tsElement.innerHTML = profile_data.meta.num_total_inactives;
 
         plotHeatMap(profile_data);
 
@@ -107,17 +110,20 @@
             var profile_data = JSON.parse(getResponseFromURL(queryUrl));
             plotHeatMap(profile_data);
 
-            var tsElement = document.getElementById('ts_used');
-            var tsText = tsEleme
-            tsElement.appendChild(tsText);
+            var tsElement = document.getElementById('this_ts');
+            tsElement.innerHTML = profile_data.meta.training_set;
 
-            var cmpsElement = document.getElementById('num_cmps');
-            var cmpsText = document.createTextNode(profile_data.meta.num_cmps);
-            cmpsElement.appendChild(cmpsText);
+            var tsElement = document.getElementById('cmps');
+            tsElement.innerHTML = profile_data.meta.num_cmps;
 
-            var aidsElement = document.getElementById('num_aids');
-            var aidsText = document.createTextNode(profile_data.meta.num_aids);
-            aidsElement.appendChild(aidsText);
+            var tsElement = document.getElementById('aids');
+            tsElement.innerHTML = profile_data.meta.num_aids;
+
+            var tsElement = document.getElementById('tot_acts');
+            tsElement.innerHTML = profile_data.meta.num_total_actives;
+
+            var tsElement = document.getElementById('tot_inacts');
+            tsElement.innerHTML = profile_data.meta.num_total_inactives;
 
 
 
