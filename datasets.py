@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 
 import json, os
-import scipy.sparse as sps
+from collections import ChainMap
 
 class DataSet:
 
@@ -37,11 +37,11 @@ class DataSet:
         if self.id_type == 'cid':
             return compounds_db.query_list(self.compounds, 'CID', ['CID'])
         elif self.id_type == 'cas':
-            return synonyms_db.query_list(self.compounds, 'Synonym', ['CID'])
+            return synonyms_db.query_list(self.compounds, 'Synonym', ['Synonym', 'CID'])
         elif self.id_type == 'smiles':
-            return compounds_db.query_list(self.compounds, 'SMILES Canonical', ['CID'])
+            return compounds_db.query_list(self.compounds, 'SMILES Canonical', ['SMILES Canonical', 'CID'])
         elif self.id_type == 'iupac':
-            return compounds_db.query_list(self.compounds, 'IUPAC Name Preferred', ['CID'])
+            return compounds_db.query_list(self.compounds, 'IUPAC Name Preferred', ['IUPAC Name Preferred', 'CID'])
 
     def get_assays(self):
         """ queries the outcomes databases to get assays """
@@ -50,8 +50,43 @@ class DataSet:
         assays = outcomes_db.query_list(cids, 'CID', ['AID', 'Outcome'])
         return assays
 
-    def get_activities(self):
-        return pd.Series(self.activities, index=self.compounds)
+    def get_activities(self, use_cids=False):
+        if not use_cids:
+            return pd.Series(self.activities, index=self.compounds)
+        else:
+            # MongoDB does not return documents in the order querired, so need to re-orient
+
+            query_list = self.get_cids()
+            cids = []
+            other_id = []
+
+            # TODO:
+            # gotta be a better way to do this.....
+            for cmp_dict in query_list:
+
+                # should be a dictionary of two keys
+                # one will def by cid, but the other could be any
+                for identifier, identifer_value in cmp_dict.items():
+
+                    # we want to key by the native identifer, which is not the CID
+                    if identifier != 'CID':
+                        other_id.append(identifer_value)
+                    else:
+                        cids.append(identifer_value)
+
+            mapping_dict = dict(zip(other_id, cids))
+
+            # not every compound in the database iwll have a cid
+
+            dict_to_series = {}
+
+            for act, identifier in zip(self.activities, self.compounds):
+                cid = mapping_dict.get(identifier, None)
+                if cid:
+                    dict_to_series[cid] = act
+
+            # use the mapping dictionary to properly assign acts to cids
+            return pd.Series(dict_to_series)
 
     def get_bioprofile(self, min_actives=0):
 
@@ -122,7 +157,7 @@ if __name__ == '__main__':
 
     import datasets_io
 
-    json_data = datasets_io.load_json(r'D:\ciipro\Guest\datasets\Carc_epoxides_aziridines.json')
+    json_data = datasets_io.load_json(r'D:\ciipro\Guest\datasets\ER_train_can.json')
     ds = make_dataset(json_data)
-    ds.get_bioprofile()
+    print(ds.get_activities(use_cids=True))
     #print(ds.get_bioprofile())

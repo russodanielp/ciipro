@@ -28,7 +28,6 @@ import datasets as ds
 import bioprofiles as bp
 
 
-# TODO: go through each module and identifiy and take out passwords, security crucial information
 
 # These variables are configured in CIIProConfig
 # TODO: put all this in a true config file
@@ -335,10 +334,9 @@ def datasets():
     """ Displays datasets page with all available datasets in users compound folder. 
     
     """
-    username = g.user.username
     return render_template('datasets.html', datasets=g.user.get_user_datasets(set_type='training'),
                            testsets=g.user.get_user_datasets(set_type='test'),
-                          username=username)
+                          username=g.user.username)
                            
                            
 @app.route('/uploaddataset', methods=['POST', 'GET'])
@@ -366,8 +364,6 @@ def uploaddataset():
         compound_filename = secure_filename(file.filename)
 
         user_datasets_folder = g.user.get_user_folder('datasets')
-
-
         user_uploaded_file = os.path.join(user_datasets_folder, compound_filename)
 
         # make the name of the dataset just the basename of the file
@@ -410,15 +406,11 @@ def deletetestset():
         Requests:
             testset_filename (str): radiobutton from datasets page.  
     """
-    USER_TEST_SETS_FOLDER = CIIProConfig.UPLOAD_FOLDER + '/' + g.user.username + '/test_sets'
-
-    username = g.user.username
-    testset_filename = request.form['testset_filename']
-    testset_filename = str(testset_filename)
-    os.remove(USER_TEST_SETS_FOLDER  + '/' + testset_filename)
+    testset_filename = '{}.json'.format(str(request.form['testset_filename']))
+    os.remove(os.path.join(g.user.get_user_folder('datasets'), testset_filename))
     return redirect(url_for('datasets'))  
                             
-@app.route('/deletedataset', methods=['POST', 'GET'])
+@app.route('/deletedataset', methods=['POST'])
 @login_required
 def deletedataset():
     """ Deletes a dataset from a users' compounds folder.  
@@ -426,19 +418,9 @@ def deletedataset():
         Requests:
             compound_filename (str): radiobutton from datasets page.  
     """
-    USER_TEST_SETS_FOLDER = CIIProConfig.UPLOAD_FOLDER + '/' + g.user.username + '/test_sets'
-    USER_COMPOUNDS_FOLDER = CIIProConfig.UPLOAD_FOLDER + '/' + g.user.username + '/compounds'
-    username = g.user.username
-    compound_filename = request.form['compound_filename']
-    compound_filename = str(compound_filename)
-    os.remove(USER_COMPOUNDS_FOLDER + '/' + compound_filename)
-    
-    datasets = [ds for ds in os.listdir(USER_COMPOUNDS_FOLDER)]
-    testsets = [ts for ts in os.listdir(USER_TEST_SETS_FOLDER)]
-
-    return render_template('datasets.html', datasets=g.user.get_user_datasets(set_type='training'),
-                           testsets=g.user.get_user_datasets(set_type='test'),
-                            username=username)                            
+    compound_filename = '{}.json'.format(str(request.form['compound_filename']))
+    os.remove(os.path.join(g.user.get_user_folder('datasets'), compound_filename))
+    return redirect(url_for('datasets'))
 
 @app.route('/CIIProfiler') 
 @login_required
