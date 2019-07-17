@@ -42,10 +42,10 @@ def activity_cliffs(f):
     
     return NN_df
 
-from bokeh.models import ColumnDataSource
-from bokeh.models.widgets import DataTable, TableColumn
-from bokeh.embed import autoload_static
-from bokeh.resources import CDN
+#from bokeh.models import ColumnDataSource
+#from bokeh.models.widgets import DataTable, TableColumn
+#from bokeh.embed import autoload_static
+#from bokeh.resources import CDN
 def cliffTable_bokeh(cliff):
     """ Returns a JavaScript tag for embedding a Bokeh DataTable on the website. 
     stats: a Pandas DataFrame conatining AID statistical information
