@@ -43,6 +43,7 @@ class Bioprofile:
             'meta': self.meta
         }
 
+
         with open(os.path.join(write_dir, '{}.json'.format(self.name)), 'w') as outfile:
             json.dump(json_data, outfile)
 

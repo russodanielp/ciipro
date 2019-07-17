@@ -1,7 +1,13 @@
 import numpy as np
+import scipy.spatial.distance as scipydis
 
 def biosimilarity_distances(X, X_, weight=0.1, normalize_conf=True):
-    """ calculate the distance of every element in X in X_ """
+    """ calculate the distance of every element of X in X_
+
+        will return two matrices of biodis/conf of shape (X.shape[0], X_.shape[0]),
+        ie., biodis[i, j] is the biodistance between X[i, :] and X_[j, :]
+
+    """
 
     # TODO: find a cleaner way to do this
 
@@ -48,10 +54,6 @@ def get_k_bioneighbors(biosim, conf, k=1, biosim_cutoff=0.75, conf_cutoff=0.5):
 
     """
 
-    # convert to biosimialrity
-    biosim = 1-biodis
-
-
     # lex sort returns n arrays of m length, where values represent
     # the sorted order for that particular sorting
     # first sort by confidence, then by biodistance
@@ -80,6 +82,31 @@ def get_k_bioneighbors(biosim, conf, k=1, biosim_cutoff=0.75, conf_cutoff=0.5):
 
         new.append(new_row[:k])
     return np.array(new)
+
+def chem_distances(X, X_, metric='jaccard'):
+    X_new = np.concatenate([X, X_])
+    print(X_new.shape)
+    chem_dist_cond = scipydis.pdist(X_new, metric)
+    chem_dist = scipydis.squareform(chem_dist_cond)
+    print(chem_dist.shape)
+    return chem_dist[:len(X), len(X):]
+
+
+def get_k_chem_neighbors(similarities, k=1):
+
+    NNs = np.argsort(similarities)
+    # since it sorts in ascending order, flipping left to right esentiall
+    NNs = np.fliplr(NNs)
+
+    new = []
+    for i, row in enumerate(NNs):
+
+        # new row is a 1-D array of NN indices in descending order
+        new_row = row.copy()
+        new.append(new_row[:k])
+    return np.array(new)
+
+    return NNs[:, k]
 
 
 
@@ -128,6 +155,15 @@ if __name__ == '__main__':
 
     nns_arr = get_k_bioneighbors(biosim, conf, biosim_cutoff=0.5, conf_cutoff=0.5)
 
-    for i, nn in enumerate(nns_arr):
-        print(biosim[i, nn], conf[i, nn], test_matrix.iloc[i, :], training_matrix.iloc[nn, :])
+
+
+    test_fps = test_data.get_pubchem_fps()
+    train_fps = training_data.get_pubchem_fps()
+
+    chem_dis = chem_distances(test_fps, train_fps)
+    chem_nns = get_k_chem_neighbors(1-chem_dis)
+
+    for i, chem_nn in enumerate(chem_nns):
+        print(test_fps.index[i], train_fps.index[chem_nn[0]])
+
 

@@ -51,7 +51,7 @@ class DataSet:
         return assays
 
     def get_activities(self, use_cids=False):
-        if not use_cids:
+        if (use_cids == False) or (self.id_type == 'cid'):
             return pd.Series(self.activities, index=self.compounds)
         else:
             # MongoDB does not return documents in the order querired, so need to re-orient
@@ -72,7 +72,7 @@ class DataSet:
                     if identifier != 'CID':
                         other_id.append(identifer_value)
                     else:
-                        cids.append(identifer_value)
+                        cids.append(int(identifer_value))
 
             mapping_dict = dict(zip(other_id, cids))
 
@@ -121,6 +121,17 @@ class DataSet:
 
         return json_ob
 
+
+    def get_pubchem_fps(self):
+        """ Returns the pubchem substructure keys for compounds in the dataset """
+        cids = [cmp['CID'] for cmp in  self.get_cids()]
+
+        query_list = compounds_db.query_list(cids, 'CID', ['Fingerprint SubStructure Keys', 'CID'])
+        cids = [int(data['CID']) for data in query_list]
+        fps = [hex_to_fps(data['Fingerprint SubStructure Keys']) for data in query_list]
+        return pd.DataFrame(fps, index=cids)
+
+
     def to_json(self, profiles_dir: str):
         with open(os.path.join(profiles_dir, '{}.json'.format(self.name))) as json_file:
             json_data = json.load(json_file)
@@ -150,6 +161,13 @@ def make_dataset(dataset_json):
     activities = [compound['activity'] for compound in dataset_json['compounds']]
     return DataSet(name, identifiers, activities, set_type, identifier_type)
 
+def hex_to_fps(hex_string):
+    """ unlike the pug rest, pubchem FPs use hex encoding """
+    import codecs
+    decoded = codecs.decode(hex_string, 'hex_codec')
+    fp = list(map(int, "".join(["{:08b}".format(x) for x in decoded])))
+    return fp
+
 
 if __name__ == '__main__':
 
@@ -159,5 +177,6 @@ if __name__ == '__main__':
 
     json_data = datasets_io.load_json(r'D:\ciipro\Guest\datasets\ER_train_can.json')
     ds = make_dataset(json_data)
-    print(ds.get_activities(use_cids=True))
+
+    print(ds.get_pubchem_fps())
     #print(ds.get_bioprofile())
