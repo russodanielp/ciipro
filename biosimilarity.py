@@ -1,6 +1,6 @@
 import numpy as np
 
-def biosimilarity_distances(X, X_, weight=0.1):
+def biosimilarity_distances(X, X_, weight=0.1, normalize_conf=True):
     """ calculate the distance of every element in X in X_ """
 
     # TODO: find a cleaner way to do this
@@ -25,10 +25,20 @@ def biosimilarity_distances(X, X_, weight=0.1):
     denom = tot_pos + tot_neg - diff
 
     biodis, conf = np.nan_to_num(1 - (numer / denom)), denom
+
+    # if we want to "normalize" we device the confidence matrix by
+    # the number of columns, which would be the highest possible confidence
+    # i.e., two compounds share all actives in all assays
+
+    if normalize_conf :
+        max_conf = X_new.shape[1]
+        conf_normed = conf / max_conf
+        return biodis[:len(X), len(X):], conf_normed[:len(X), len(X):]
+
     return biodis[:len(X), len(X):], conf[:len(X), len(X):]
 
 
-def get_k_bioneighbors(biosim, conf, k=1, biosim_cutoff=0.75, conf_cutoff=1):
+def get_k_bioneighbors(biosim, conf, k=1, biosim_cutoff=0.75, conf_cutoff=0.5):
     """
         Given a biodis, conf matrix of the shape n x m, where
         each cell is either a biosim calc or a confidence value,
@@ -74,6 +84,9 @@ def get_k_bioneighbors(biosim, conf, k=1, biosim_cutoff=0.75, conf_cutoff=1):
 
 
 if __name__ == '__main__':
+
+    # this is all for testing
+
     from bioprofiles import Bioprofile
     from datasets import DataSet
 
@@ -113,7 +126,7 @@ if __name__ == '__main__':
     biodis, conf = biosimilarity_distances(test_matrix.values, training_matrix.values)
     biosim = 1-biodis
 
-    nns_arr = get_k_bioneighbors(biosim, conf, biosim_cutoff=0.5, conf_cutoff=1)
+    nns_arr = get_k_bioneighbors(biosim, conf, biosim_cutoff=0.5, conf_cutoff=0.5)
 
     for i, nn in enumerate(nns_arr):
         print(biosim[i, nn], conf[i, nn], test_matrix.iloc[i, :], training_matrix.iloc[nn, :])
