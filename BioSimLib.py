@@ -712,28 +712,8 @@ def convert_file(f, compound_type):
         df.to_pickle(f[:-4])
 
 
-from rdkit.Chem import MACCSkeys
-from rdkit import Chem
-from rdkit import DataStructs
 
-def getFPs(s):
-    """ Returns a dictionary with CIDS as keys, RDKit fingerprint objects as keys.
-    
-    s: A Pandas Series with CIDS as the index and smiles strings as values.   
-    """
-    FPs = {}
-    for cid in s.index:
-        if type(s[cid]) != str:
-            smi = s[cid].decode('utf-8')
-        else:
-            smi = s[cid]
-        mol = Chem.MolFromSmiles(smi)
-        if mol == None:
-            FPs[cid] = None
-        else:
-            FP = MACCSkeys.GenMACCSKeys(mol)
-            FPs[cid] = FP
-    return FPs
+
 
 
 def getChemSimilarity(train_fp, test_fp):
