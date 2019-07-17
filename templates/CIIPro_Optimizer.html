@@ -83,7 +83,7 @@
         var e = document.getElementById("profile-selection");
         var currentProfile = e.options[e.selectedIndex].value;
 
-        var queryUrl = "ciipro.rutgers.edu/get_bioprofile/" + currentProfile;
+        var queryUrl = "http://ciipro.rutgers.edu/get_bioprofile/" + currentProfile;
         var profile_data = JSON.parse(getResponseFromURL(queryUrl));
 
         var tsElement = document.getElementById('this_ts');
