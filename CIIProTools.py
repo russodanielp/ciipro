@@ -6,7 +6,7 @@ Author: Daniel P. Russo
 Created: April 4th, 2016 
 
 """
-from BioSimLib import smi_series, getFPs, getChemSimilarity, act_series_flt, get_chemNN
+from BioSimLib import smi_series, getChemSimilarity, act_series_flt, get_chemNN
 import pandas as pd
 
 def activity_cliffs(f):
