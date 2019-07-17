@@ -15,6 +15,10 @@
 		text-align: left;
 	}
 
+table, th, td {
+  border: 1px solid black;
+}
+
 </style>
 
 <div class="predictor">
@@ -148,47 +152,105 @@
 		</div>
 	<input type="submit" class="btn btn-primary" value="Submit" name="Submit"/>
 </form>
-
+<br>
+<br>
+<br>
 <!-- TODO: Fix the width of the table here -->
     <div class="row" >
         <div class="col-md-3">
-            {% if cids %}
-                <a href="/sendbiosims">Click Here to download biosimilarity calculation files</a>
-                <br>
-                <b>Active</b>: 1 <br>
-                <b>Inconclusive</b>: 0.5 <br>
-                <b>Inactive</b>: 0 <br>
-                <table style="width: 100%; border: 1px solid blue;">
-                    <tr style="width: 100%; background-color: LightGray; border: 1px solid blue;">
-                        <th style="width: 20%; background-color: LightGray; border: 1px solid blue;"><b>CID</b></th>
-                        <th style="text-align:center; width: 20%; background-color: LightGray; border: 1px solid blue;"><b><i>In vivo</i> Activity</b></th>
-                        <th style="text-align:center; width: 20%; background-color: LightGray; border: 1px solid blue;"><b>CIIP Predictor Activity</b></th>
-                    </tr>
 
-                    {% for i in range(0, len_cids) %}
-                    <tr style="width: 100%; background-color: LightGray; border: 1px solid blue;">
-                        {% if NN_bool[i]  %}
-                        <td style="width: 20%; background-color: LightGray; border: 1px solid blue;"><a href="/similarity{{ cids[i] }}" target="_blank">{{ cids[i] }}</a></td>
-                        {% else %}
-                        <td style="width: 20%; background-color: LightGray; border: 1px solid blue;">{{ cids[i] }}</td>
-                        {% endif %}
-                        <td style="text-align:center; width: 20%; background-color: LightGray; border: 1px solid blue;">{{ acts[i] }}</td>
-                        <td style="text-align:center; width: 20%; background-color: LightGray; border: 1px solid blue;">{{ preds[i] }}</td>
-                    </tr>
-                    {% endfor %}
-                </table>
-            {% endif %}
+
+
         </div>
     </div>
 
-    {% if sim_graph %}
+    {% if data %}
 
     <div class="row" >
-        <div class="col-lg">
-               {{ sim_graph|safe }}
+        <div class="col-md-3">
+
+        <table style="width:100%">
+            <tr>
+                <th id="test-cmp-header">{{ data|length }} Test Compounds</th>
+                <th id="BioNN">Bio NNs</th>
+                <th id="ChemNN">Chem NNs</th>
+            </tr>
+            {% for datum in data %}
+
+                <tr>
+                <td >
+                    <testcmp id="{{ datum.cid }}">
+                        <a href="https://pubchem.ncbi.nlm.nih.gov/compound/{{ data.cid }}" target="_blank">
+                        {{ datum.cid }}
+                        </a>
+                    </testcmp>
+                </td>
+
+                <td>
+                    <bionns id="{{ datum.cid }}-bionns">
+
+                        {% for bionn in datum.bionn %}
+                            <bionn id="{{ bionn }}">
+                            <a href="https://pubchem.ncbi.nlm.nih.gov/compound/{{ bionn }}" target="_blank">
+                            {{ bionn }}&nbsp
+                            </a>
+                            </bionn>
+                        {% endfor %}
+                    </bionns>
+                </td>
+
+                <td>
+                    <chemnns id="{{ datum.cid }}-chemnns">
+
+                        {% for chemnn in datum.chemnn %}
+                            <chemnn id="{{ chemnn }}">
+                            <a href="https://pubchem.ncbi.nlm.nih.gov/compound/{{ chemnn }}" target="_blank">
+                            {{ chemnn }}&nbsp
+                            </a>
+                            </chemnn>
+                        {% endfor %}
+                    </chemnns>
+                </td>
+                </tr>
+            {% endfor %}
+        </table>
         </div>
-    </div>
+        <div class="col-md-3">
+
+        <table style="width:100%">
+            <tr>
+                <th id="test-cmp-header">{{ data|length }} Test Compounds</th>
+                <th id="BioNN">Bio Predictions</th>
+                <th id="ChemNN">Chem Predictions</th>
+            </tr>
+            {% for datum in data %}
+
+                <tr>
+                <td >
+                    <testcmp id="{{ datum.cid }}-pred">
+                        {{ datum.cid }}
+                    </testcmp>
+                </td>
+
+                <td>
+                    <biopred id="pred-bionns">
+                        {{ datum.bioPred }}
+                    </biopred>
+                </td>
+
+                <td>
+                    <chemnns id="pred-chemnns">
+                        {{ datum.chemPred }}
+                    </chemnns>
+                </td>
+                </tr>
+
+            {% endfor %}
+
+        </table>
+
+        </div>
 
     {% endif %}
-</div>
+    </div>
 {% endblock %}

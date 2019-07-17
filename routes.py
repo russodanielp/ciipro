@@ -3,7 +3,7 @@ import os
 import ntpath
 
 from flask import Flask, render_template, flash, session, \
-    redirect, url_for, g, send_file, request
+    redirect, url_for, g, send_file, request, jsonify
 from flask_login import login_user, logout_user, current_user, login_required, LoginManager
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -26,7 +26,7 @@ import datasets_io as ds_io
 import datasets as ds
 
 import bioprofiles as bp
-
+import biosimilarity as biosim
 
 
 # These variables are configured in CIIProConfig
@@ -578,9 +578,9 @@ def CIIPPredict():
             profile_filename = request.form['profile_filename']
             compound_filename = request.form['compound_filename']
 
-            cutoff = float(request.form['cutoff'])
-            confidence = float(request.form['conf'])
-            nns = float(request.form['nns'])
+            biosim_cutoff = float(request.form['cutoff'])
+            conf_cutoff = float(request.form['conf'])
+            nn_cutoff = float(request.form['nns'])
 
             training_profile = g.user.load_bioprofile(profile_filename)
 
@@ -594,79 +594,85 @@ def CIIPPredict():
 
             # get a full test set profile
             print(training_data, test_data)
+            test_profile_json = test_data.get_bioprofile()
 
-            print(test_data.get_bioprofile())
+            # I guess since a lot of these dont get used might be better to
+            # create two classes one for training profiles and one for test
+            test_profile = bp.Bioprofile(None,
+                                         test_profile_json['cids'],
+                                         test_profile_json['aids'],
+                                         test_profile_json['outcomes'],
+                                         None,
+                                         None)
 
-            biosims, conf = get_BioSim(bioprofile, test)
-            biosims.to_csv(USER_BIOSIMS_FOLDER + '/' +  profile_filename.replace('_BioProfile', '_BioSim_{0}_{1}_{2}'.format(cutoff[0], confidence[0], nns)), sep='\t')
-            conf.to_csv(USER_BIOSIMS_FOLDER + '/' +  profile_filename.replace('_BioProfile', '_Conf_{0}_{1}_{2}'.format(cutoff[0], confidence[0], nns)), sep='\t')
-            # writer = getExcel(USER_BIOSIMS_FOLDER + '/' +  profile_filename.replace('_BioProfile.txt', '_BioSim_Conf.xlsx'))
-            # biosims.to_excel(writer, 'Biosimilarity')
-            # conf.to_excel(writer, 'Confidence Scores')
-            # writer.save()
-            # get smiles
-            smi_test = smi_series(compound_directory[:-11])
-            smi_train = smi_series(USER_COMPOUNDS_FOLDER + '/' + training_filename[:-11])
+            test_matrix = test_profile.to_frame()
 
-            # remove compounds no in bioprofile
-            s_train = smi_train.loc[smi_train.index.intersection(bioprofile.index)]
-        
-            train_fp = getFPs(s_train)
-            test_fp = getFPs(smi_test)
-            tan = getChemSimilarity(train_fp, test_fp)
-            NNs = createNN(biosims, conf, bio_sim=float(cutoff[0]), conf_cutoff=float(confidence[0]))
-            print(NNs)
-            for nn in NNs:
-                if not NNs[nn].empty:
-                    s = get_chemNN(nn, tan, nns=len(NNs[nn].BioNN))
-                    NNs[nn] = add_ChemNN(NNs[nn], s)
-        
-            cids = []
-            preds = []
-            acts = []
-            NN_bool = []
-            testsets = [testset for testset in os.listdir(USER_TEST_SET_FOLDER)]
-            train_act = act_series(USER_COMPOUNDS_FOLDER + '/' + training_filename[:-11])
-            for nn in NNs:
-                if not NNs[nn].empty:
-                    NN_bool.append(True)
-                    NNs[nn] = add_BioNN_act(NNs[nn], train_act)
-                    NNs[nn] = add_ChemNN_act(NNs[nn], train_act)
-                    pred = make_BioNN_pred(NNs[nn], int(nns))
-                    cids.append(str(nn))
-                    if pred < 0.5:
-                        preds.append(str(0))
-                    elif pred > 0.5:
-                        preds.append(str(1))
-                    else:
-                        preds.append(str(0.5))
-                    if 'Activity' in test.columns:
-                        acts.append(str(test.loc[nn, 'Activity']))
-                    else:
-                        acts.append('N/A')
-                else:
-                    cids.append(str(nn))
-                    NN_bool.append(False)
-                    preds.append('N/A')
-                    if 'Activity' in test.columns:
-                        acts.append(str(test.loc[nn, 'Activity']))
-                    else:
-                        acts.append('N/A')
-            len_cids = len(cids)
-            profiles = [profile for profile in os.listdir(USER_PROFILES_FOLDER)]
-            for nn in NNs:
-                if not NNs[nn].empty:
-                    NNs[nn].to_csv(USER_NN_FOLDER + '/' + compound_filename.replace('_CIIPro.txt', '') + '/' + str(nn) + '.csv')
-            #session['sim_data'] = NNs
-            #session['cids'] = cids
-            #session['preds'] = preds
-            session['nns'] = int(nns)
-            session['test_set'] = compound_filename.replace('_CIIPro.txt', '')
-            session['cur_biosim_dir'] = USER_BIOSIMS_FOLDER + '/' +  profile_filename.replace('_BioProfile.txt', '')
-            session['max_conf'] = len(bioprofile.columns)            
-            return render_template('CIIPPredictor.html', cids=cids,
-                               preds=preds, acts=acts, len_cids=len_cids, profiles=profiles, testsets=g.user.get_user_datasets(set_type='test'), 
-                               NN_bool=NN_bool)  
+            # only use the intersection of the test profile and the training profile
+            shared_assays = training_matrix.columns.intersection(test_matrix.columns)
+
+            # TODO: Need to come up with an error if no test compounds have assays in the training profile
+
+            # align both axis
+            test_matrix = test_matrix.loc[:, shared_assays]
+            training_matrix = training_matrix.loc[:, shared_assays]
+
+            trainin_activites = training_data.get_activities(use_cids=True)
+            trainin_activites = trainin_activites[training_matrix.index]
+
+            # currently weight is ratio of actives:inactives in training profile
+            # but never have it above 1
+            # TODO: add this as a paramater to let users choose
+
+            act_to_inact_ratio =(training_matrix == 1).sum().sum() / (training_matrix == -1).sum().sum()
+
+            inact_weight = act_to_inact_ratio if act_to_inact_ratio <= 1 else 1
+
+            biodis, conf = biosim.biosimilarity_distances(test_matrix.values,
+                                                          training_matrix.values,
+                                                          weight=inact_weight)
+
+            biosimilarity = 1-biodis
+
+            bio_nns = biosim.get_k_bioneighbors(biosimilarity, conf,
+                                            k=nn_cutoff,
+                                            biosim_cutoff=biosim_cutoff,
+                                            conf_cutoff=conf_cutoff)
+
+            train_fps = training_data.get_pubchem_fps()
+            test_fps = test_data.get_pubchem_fps()
+
+            # make sure axis are aligned
+            train_fps = train_fps.loc[training_matrix.index]
+            test_fps = test_fps.loc[test_matrix.index]
+
+
+            # now get chem similarity
+            chemdis = biosim.chem_distances(test_fps.values, train_fps.values)
+            chemsim = 1-chemdis
+            chem_nns = biosim.get_k_chem_neighbors(chemsim, k=nn_cutoff)
+
+            # now package is all up in a json ob
+
+            data = []
+
+            for i, test_cmp in enumerate(test_matrix.index):
+
+                test_cmp_data = {}
+                test_cmp_data["cid"] = int(test_cmp)
+                test_cmp_data['bionn'] = list(map(int, training_matrix.index[bio_nns[i]]))
+                test_cmp_data['bioSims'] = list(map(float, biosimilarity[i, bio_nns[i]]))
+                test_cmp_data['bioConf'] = list(map(float, conf[i, bio_nns[i]]))
+                test_cmp_data['bioPred'] = float(trainin_activites[training_matrix.index[bio_nns[i]]].mean())
+
+                test_cmp_data['chemnn'] = list(map(int, training_matrix.index[chem_nns[i]]))
+                test_cmp_data['chemSims'] = list(map(float, chemsim[i, chem_nns[i]]))
+                test_cmp_data['chemPred'] = float(trainin_activites[training_matrix.index[chem_nns[i]]].mean())
+                data.append(test_cmp_data)
+
+
+            return render_template('CIIPPredictor.html',
+                                   testsets=g.user.get_user_datasets(set_type='test'),
+                                   data=data)
 
 
 
@@ -800,7 +806,7 @@ def internalServiceError(e):
 
 # this is where the RESTFul API will be
 
-
+@login_required
 @app.route('/get_bioprofile/<profile_name>')
 def get_bioprofile(profile_name):
     json_filename = os.path.join(g.user.get_user_folder('profiles'), '{}.json'.format(profile_name))
