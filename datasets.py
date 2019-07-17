@@ -1,5 +1,5 @@
 """ Module for users datasets """
-from typing import List
+
 
 import pandas as pd
 from pc_mongodb import compounds_db, synonyms_db, outcomes_db
@@ -12,10 +12,10 @@ from collections import ChainMap
 
 class DataSet:
 
-    def __init__(self, name: str,
-                 compounds: List,
-                 activities: List,
-                 set_type: str,
+    def __init__(self, name,
+                 compounds,
+                 activities,
+                 set_type,
                  identifier_type='CID'):
         """  to do  """
 

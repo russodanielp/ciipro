@@ -1,7 +1,6 @@
 """  Module for code to interact with the PubChem data stored on CIIPro """
 
 import pymongo
-from typing import List
 from pymongo.collection import Collection
 
 from ciipro_config import CIIProConfig
@@ -23,8 +22,8 @@ class PCCollection:
     def __init__(self, collection_ob: Collection):
         self.col_ob = collection_ob
 
-    def query_list(self, query_list: List, query_field: str,
-                   return_fields_list: List, return_id=False, return_query=True):
+    def query_list(self, query_list, query_field,
+                   return_fields_list, return_id=False, return_query=True):
 
         # TODO: make a copy of the outcomes database and convert all to integers
         # TODO: so we can remove this conversion

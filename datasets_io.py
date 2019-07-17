@@ -4,9 +4,9 @@ import json
 from pandas import DataFrame
 import pandas as pd
 import os, glob
-from typing import List
 
-def write_ds_to_json(identifiers: List, activities: List, to_dir: str, name: str, identifier_type: str, set_type='training'):
+
+def write_ds_to_json(identifiers, activities, to_dir, name, identifier_type, set_type='training'):
     """ writes a dataset to a json file.  dataset is a dataframe where the first column is an
      identifier and the second is the corresponding activities
 
@@ -57,7 +57,7 @@ def load_json(dir):
     return dataset
 
 
-def get_datasets_names_for_user(compounds_dir: str, set_type='training'):
+def get_datasets_names_for_user(compounds_dir, set_type='training'):
     all_jsons = glob.glob(os.path.join(compounds_dir, '*.json'))
     names = []
 

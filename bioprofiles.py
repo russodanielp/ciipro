@@ -1,6 +1,6 @@
 """ Model that contains class for interacting with bioprofiles """
 
-from typing import List, Dict
+
 import json, os
 import pandas as pd
 import numpy as np
@@ -9,12 +9,12 @@ class Bioprofile:
 
 
     def __init__(self,
-                 name:str,
-                 cids: List[int],
-                 aids: List[int],
-                 outcomes: List[int],
-                 stats: List[Dict],
-                 meta: Dict):
+                 name,
+                 cids,
+                 aids,
+                 outcomes,
+                 stats,
+                 meta):
         """ profile should have a name, a list of cids and a list of aids and and list of outcomes,
         order matters for these as cids[i], aids[i], outcomes[i] represents a compounds outcome in an assays,
         similarly, stats are the calculated stats for that assay with the training set
@@ -33,7 +33,7 @@ class Bioprofile:
     def __str__(self):
         return self.__repr__()
 
-    def to_json(self, write_dir: str):
+    def to_json(self, write_dir):
         json_data = {
             'name': self.name,
             'cids': self.cids,

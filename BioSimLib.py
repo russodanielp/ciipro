@@ -522,6 +522,8 @@ def getClasses(act, aid):
 
     cmps = aid[((aid == 1) | (aid == -1))].index
 
+    print(act, aid)
+
     union = (act[cmps] + aid[cmps])
 
     TP = union[union > 0].count()
