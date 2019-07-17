@@ -106,7 +106,7 @@
         e.addEventListener("change", function() {
             var e = document.getElementById("profile-selection");
             var currentProfile = e.options[e.selectedIndex].value;
-            var queryUrl = "http://127.0.0.1:5000/get_bioprofile/" + currentProfile;
+            var queryUrl = "http://ciipro.rutgers.edu/get_bioprofile/" + currentProfile;
             var profile_data = JSON.parse(getResponseFromURL(queryUrl));
             plotHeatMap(profile_data);
 
