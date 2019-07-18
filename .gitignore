@@ -22,3 +22,7 @@ users.db
 
 # .pyc files
 *.pyc
+
+# ignore the notes file that contains 
+# info about the CIIPro app
+notes.txt
