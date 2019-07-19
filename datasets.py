@@ -12,6 +12,18 @@ from collections import ChainMap
 
 class DataSet:
 
+    # maps identifier names from the website
+    # to how they are stored in the MongoDB
+    # e.g., cas numbers are under the 'synonym' moniker
+    # iupac maps to IUPAC Name Preferred, etc.
+    QUERY_IDENTIFIER_MAP = {
+        'cid': 'CID',
+        'cas': 'Synonym',
+        'smiles': 'SMILES Canonical',
+        'iupac': 'IUPAC Name Preferred'
+    }
+
+
     def __init__(self, name,
                  compounds,
                  activities,
@@ -24,6 +36,8 @@ class DataSet:
         self.activities = activities
         self.id_type = identifier_type
         self.set_type = set_type
+        self.db_id_name = DataSet.QUERY_IDENTIFIER_MAP[self.id_type]
+
 
     def __repr__(self):
         return "{}".format(self.name)
@@ -34,19 +48,26 @@ class DataSet:
     def get_cids(self):
         """ converts identifier from the native """
 
-        if self.id_type == 'cid':
-            return compounds_db.query_list(self.compounds, 'CID', ['CID'])
-        elif self.id_type == 'cas':
-            return synonyms_db.query_list(self.compounds, 'Synonym', ['Synonym', 'CID'])
-        elif self.id_type == 'smiles':
-            return compounds_db.query_list(self.compounds, 'SMILES Canonical', ['SMILES Canonical', 'CID'])
-        elif self.id_type == 'iupac':
-            return compounds_db.query_list(self.compounds, 'IUPAC Name Preferred', ['IUPAC Name Preferred', 'CID'])
+        # cas numbers are stored in a different database
+        if self.id_type == 'cas':
+            return synonyms_db.query_list(self.compounds, self.db_id_name, [self.db_id_name, 'CID'])
+        else:
+            return compounds_db.query_list(self.compounds, self.db_id_name, [self.db_id_name, 'CID'])
+
 
     def get_assays(self):
         """ queries the outcomes databases to get assays """
 
-        cids = [cmp['CID'] for cmp in self.get_cids()]
+        # TODO: right now handling this as if the only unique identifier is PubChem CID
+        if self.id_type == 'cids':
+            cids = [cmp['CID'] for cmp in self.get_cids()]
+        else:
+            cids = self.get_cids()
+            cid_frame = pd.DataFrame(cids).drop_duplicates(self.db_id_name)
+            cids = cid_frame['CID'].tolist()
+
+
+
         assays = outcomes_db.query_list(cids, 'CID', ['AID', 'Outcome'])
         return assays
 
@@ -175,8 +196,7 @@ if __name__ == '__main__':
 
     import datasets_io
 
-    json_data = datasets_io.load_json(r'D:\ciipro\Guest\datasets\ER_train_can.json')
+    json_data = datasets_io.load_json(r'D:\ciipro\swatisha\datasets\training_set_with_cas.json')
     ds = make_dataset(json_data)
 
-    print(ds.get_pubchem_fps())
-    #print(ds.get_bioprofile())
+    print(ds.get_bioprofile().head())
