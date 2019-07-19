@@ -499,44 +499,41 @@ def CIIProfile():
         min_actives = int(request.form['noOfActives'])
         profile_name = str(request.form['profile_filename'])
 
-        bioprofile_json_filename = os.path.join(g.user.get_user_folder('profiles'), '{}.json'.format(profile_name))
-        if os.path.exists(bioprofile_json_filename):
-            bioprofile = bp.Bioprofile.from_json(bioprofile_json_filename)
-        else:
-            bioprofile_json = ds.get_bioprofile(min_actives=min_actives)
 
-            act = ds.get_activities(use_cids=True)
-            print(act)
-            # TODO a better way to tdo this
+        bioprofile_json = ds.get_bioprofile(min_actives=min_actives)
 
-            bioprofile = bp.Bioprofile(profile_name,
-                                       bioprofile_json['cids'],
-                                       bioprofile_json['aids'],
-                                       bioprofile_json['outcomes'], None, None)
+        act = ds.get_activities(use_cids=True)
+        print(act)
+        # TODO a better way to tdo this
 
-            profile_matrix = bioprofile.to_frame()
-            stats_df = getIVIC(act, profile_matrix)
-            stats_df.reset_index(inplace=True)
-            stats_df = stats_df.rename(str, columns={"index": "aid"})
+        bioprofile = bp.Bioprofile(profile_name,
+                                   bioprofile_json['cids'],
+                                   bioprofile_json['aids'],
+                                   bioprofile_json['outcomes'], None, None)
 
-            meta = {}
-            meta['training_set'] = str(ds_name)
-            meta['num_total_actives'] = int((profile_matrix == 1).sum().sum())
-            meta['num_total_inactives'] = int((profile_matrix == -1).sum().sum())
-            meta['num_cmps'] = int(profile_matrix.shape[0])
-            meta['num_aids'] = int(profile_matrix.shape[1])
+        profile_matrix = bioprofile.to_frame()
+        stats_df = getIVIC(act, profile_matrix)
+        stats_df.reset_index(inplace=True)
+        stats_df = stats_df.rename(str, columns={"index": "aid"})
+
+        meta = {}
+        meta['training_set'] = str(ds_name)
+        meta['num_total_actives'] = int((profile_matrix == 1).sum().sum())
+        meta['num_total_inactives'] = int((profile_matrix == -1).sum().sum())
+        meta['num_cmps'] = int(profile_matrix.shape[0])
+        meta['num_aids'] = int(profile_matrix.shape[1])
 
 
-            # this has to happen to store AIDs as attributes in JSON
-            stats_df.index = list(map(str, stats_df.index))
+        # this has to happen to store AIDs as attributes in JSON
+        stats_df.index = list(map(str, stats_df.index))
 
-            bioprofile = bp.Bioprofile(profile_name,
-                                       bioprofile_json['cids'],
-                                       bioprofile_json['aids'],
-                                       bioprofile_json['outcomes'], stats_df.to_dict('records'), meta)
+        bioprofile = bp.Bioprofile(profile_name,
+                                   bioprofile_json['cids'],
+                                   bioprofile_json['aids'],
+                                   bioprofile_json['outcomes'], stats_df.to_dict('records'), meta)
 
 
-            bioprofile.to_json(g.user.get_user_folder('profiles'))
+        bioprofile.to_json(g.user.get_user_folder('profiles'))
 
 
 
