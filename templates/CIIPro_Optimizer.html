@@ -74,6 +74,7 @@
     <script src="../static/js/heatmap_d3.js"></script>
     <script src="https://d3js.org/d3.v4.js"></script>
     <script src="../static/js/requests.js"></script>
+    <script src="../static/js/config.js"></script>
 
     <script>
 
@@ -83,7 +84,7 @@
         var e = document.getElementById("profile-selection");
         var currentProfile = e.options[e.selectedIndex].value;
 
-        var queryUrl = "http://ciipro.rutgers.edu/get_bioprofile/" + currentProfile;
+        var queryUrl = urlDomain + "get_bioprofile/" + currentProfile;
         var profile_data = JSON.parse(getResponseFromURL(queryUrl));
 
         var tsElement = document.getElementById('this_ts');
@@ -106,7 +107,7 @@
         e.addEventListener("change", function() {
             var e = document.getElementById("profile-selection");
             var currentProfile = e.options[e.selectedIndex].value;
-            var queryUrl = "http://ciipro.rutgers.edu/get_bioprofile/" + currentProfile;
+            var queryUrl = urlDomain + "get_bioprofile/" + currentProfile;
             var profile_data = JSON.parse(getResponseFromURL(queryUrl));
             plotHeatMap(profile_data);
 

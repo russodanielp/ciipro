@@ -5,7 +5,7 @@
 # ignore the config files
 ciipro_config.py
 ciipro_app.wsgi
-
+static/js/config.js
 
 /__pycache__
 
@@ -26,3 +26,4 @@ users.db
 # ignore the notes file that contains 
 # info about the CIIPro app
 notes.txt
+
