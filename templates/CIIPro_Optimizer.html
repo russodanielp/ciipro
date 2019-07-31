@@ -11,8 +11,13 @@
 }
 </style>
 
-<div class="profile">
-<form action="/optimize" method="post" enctype="multipart/form-data">
+
+
+
+
+
+<div class="profile", style="margin-bottom: 10em">
+
 		<div class="row">
 			<div class="col-sm-4">
 				<div class="panel panel-primary">
@@ -53,29 +58,87 @@
 			</div>
 		</div>
 
-        <div class="row">
+        <div class="row" style="margin-bottom: 5em">
             <div class="col-12">
-
-
             <div id="heatmap"></div>
-            <div id="table">
-
-            </div>
 
             </div>
         </div>
-{#		<input type="submit" class="btn btn-primary" value="Profile" name="user_input"/>#}
-		</form>
+
+    <div class="filter">
+        <div class="row">
+            <div class="col-sm-4">
+                <div class="panel panel-primary">
+
+                    <div class="panel-heading">
+                            <h3 class="panel-title">Filters to apply</b>:<br></h3>
+                    </div>
+
+
+
+                    <div class="filters" class="panel-body">
+
+                        <div class="row">
+
+                            <div class="col-md-12">
+
+                                <h3><b>Applied Filters: </b></h3>
+                                <div id="applied-filters">
+                                    <div class="applied-filer">
+                                    <div class="stat" data-value="CCR">CCR @</div><div class="thresh" data-value="0.75">0.75</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    <div class="row" class="apply-filters" style="margin: 2em">
+
+                        <div class="col-sm-12">
+                        <select id="stats-filter" style="margin-right: 2em">
+                            <option value="CCR">CCR</option>
+                            <option value="Sens">Sensitivity</option>
+                            <option value="CCR">Specificity</option>
+                        </select>
+
+                        <select id="stats-threshold" style="margin-right: 2em">
+                            <option value="0.1">0.1</option>
+                            <option value="0.2">0.2</option>
+                            <option value="0.3">0.3</option>
+                            <option value="0.4">0.4</option>
+                            <option value="0.5">0.5</option>
+                            <option value="0.6">0.6</option>
+                            <option value="0.7">0.7</option>
+                            <option value="0.8">0.8</option>
+                            <option value="0.9">0.9</option>
+
+                        </select>
+
+                        <button onclick="addFilter()" class="btn btn-primary"
+                                value="Add Filter" name="addFilter">Add Filter</button>
+                         </div>
+
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
 
 
 
 </div>
 
+
+
+
     <script src="../static/js/heatmap_d3.js"></script>
     <script src="https://d3js.org/d3.v4.js"></script>
     <script src="../static/js/requests.js"></script>
     <script src="../static/js/config.js"></script>
-
+    <script src="../static/js/optimizer.js"></script>
     <script>
 
 
@@ -102,7 +165,11 @@
         var tsElement = document.getElementById('tot_inacts');
         tsElement.innerHTML = profile_data.meta.num_total_inactives;
 
+
+
         plotHeatMap(profile_data);
+
+
 
         e.addEventListener("change", function() {
             var e = document.getElementById("profile-selection");
@@ -125,6 +192,12 @@
 
             var tsElement = document.getElementById('tot_inacts');
             tsElement.innerHTML = profile_data.meta.num_total_inactives;
+
+            var new_tbody = document.createElement('tbody');
+            addStatsToBody(profile_data.stats, new_tbody);
+            old_tbody.parentNode.replaceChild(new_tbody, old_tbody)
+            old_tbody = document.getElementById('stats-table').getElementsByTagName('tbody')[0];
+
 
 
 
