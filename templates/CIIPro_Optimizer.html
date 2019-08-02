@@ -13,8 +13,13 @@
 
 
 
-
-
+<script src="../static/js/heatmap_d3.js"></script>
+<script src="https://d3js.org/d3.v4.js"></script>
+<script src="../static/js/requests.js"></script>
+<script src="../static/js/optimizer.js"></script>
+<script type=text/javascript>
+  $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+</script>
 
 <div class="profile", style="margin-bottom: 10em">
 
@@ -84,7 +89,7 @@
 
                                 <h3><b>Applied Filters: </b></h3>
                                 <div id="applied-filters">
-                                    <div class="applied-filer">
+                                    <div class="applied-filter">
                                     <div class="stat" data-value="CCR">CCR @</div><div class="thresh" data-value="0.75">0.75</div>
                                     </div>
                                 </div>
@@ -114,8 +119,12 @@
 
                         </select>
 
-                        <button onclick="addFilter()" class="btn btn-primary"
+                            <button onclick="addFilter()" class="btn btn-primary"
                                 value="Add Filter" name="addFilter">Add Filter</button>
+
+
+                            <button onclick="aggFilters()" class="btn btn-primary"
+                                value="Get Filter" name="aggFilters">Get Filter</button>
                          </div>
 
 
@@ -134,11 +143,7 @@
 
 
 
-    <script src="../static/js/heatmap_d3.js"></script>
-    <script src="https://d3js.org/d3.v4.js"></script>
-    <script src="../static/js/requests.js"></script>
-    <script src="../static/js/config.js"></script>
-    <script src="../static/js/optimizer.js"></script>
+
     <script>
 
 
@@ -147,8 +152,10 @@
         var e = document.getElementById("profile-selection");
         var currentProfile = e.options[e.selectedIndex].value;
 
-        var queryUrl = urlDomain + "get_bioprofile/" + currentProfile;
+        var queryUrl = $SCRIPT_ROOT + "get_bioprofile/" + currentProfile;
         var profile_data = JSON.parse(getResponseFromURL(queryUrl));
+
+        console.log(queryUrl);
 
         var tsElement = document.getElementById('this_ts');
         tsElement.innerHTML = profile_data.meta.training_set;
@@ -174,7 +181,7 @@
         e.addEventListener("change", function() {
             var e = document.getElementById("profile-selection");
             var currentProfile = e.options[e.selectedIndex].value;
-            var queryUrl = urlDomain + "get_bioprofile/" + currentProfile;
+            var queryUrl = $SCRIPT_ROOT + "get_bioprofile/" + currentProfile;
             var profile_data = JSON.parse(getResponseFromURL(queryUrl));
             plotHeatMap(profile_data);
 
