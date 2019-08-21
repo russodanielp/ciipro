@@ -26,18 +26,3 @@ After installing conda the CIIPro virtual environment can be created using the `
  conda env create --force
  ```
 
-
-### NECESSARY FILES FOR DEVELOPING ###
-
-`config.js` file that should be located in `/static/js/`
-
-This file needs to define a JS variable called 'urlDomain'.  This allows for local development by
-defining the base URL as your local host, which is necessary for using the RESTful API.  For example,
-instead of querying 'ciipro.rutgers.edu/some/request', it will query '127.0.0.1:5000/some/request'.
-
-There's probably a flask-y way to do this......but until then the `config.js` file should have something
-like this:
-
-`var urlDomain = 'http://127.0.0.1:5000/';`
-
-Make sure not to commit this file to the repo!

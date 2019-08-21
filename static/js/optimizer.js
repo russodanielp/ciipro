@@ -100,7 +100,19 @@ function addFilter() {
 
 }
 
+function deleteProfile() {
+    var e = document.getElementById("profile-selection");
+    var currentProfile = e.options[e.selectedIndex].value;
 
+
+    data = {
+        profile_name: currentProfile
+    }
+
+    postData('/delete_profile', data);
+
+    location.reload();
+}
 
 function clearFilters() {
 
@@ -147,7 +159,6 @@ function aggFilters() {
 function postData(url, data) {
     // function that uses fetch model to send the current filters to the flask function
 
-    console.log(data);
 
     fetch(url, {
 

@@ -499,11 +499,9 @@ def CIIProfile():
         min_actives = int(request.form['noOfActives'])
         profile_name = str(request.form['profile_filename'])
 
-
         bioprofile_json = ds.get_bioprofile(min_actives=min_actives)
 
         act = ds.get_activities(use_cids=True)
-        print(act)
         # TODO a better way to tdo this
 
         bioprofile = bp.Bioprofile(profile_name,
@@ -512,6 +510,7 @@ def CIIProfile():
                                    bioprofile_json['outcomes'], None, None)
 
         profile_matrix = bioprofile.to_frame()
+
         stats_df = getIVIC(act, profile_matrix)
         stats_df.reset_index(inplace=True)
         stats_df = stats_df.rename(str, columns={"index": "aid"})
@@ -814,6 +813,23 @@ def get_bioprofile(profile_name):
     return json.dumps(json_data)
 
 
+
+@login_required
+@app.route('/delete_profile', methods=['POST'])
+def delete_profile():
+    """
+        a remove a specific bioprofile
+
+    """
+    json_data = request.get_json()
+
+    profile_name = json_data['profile_name']
+
+    profile_path = os.path.join(g.user.get_user_folder('profiles'), '{}.json'.format(profile_name))
+
+    os.remove(profile_path)
+
+
 @login_required
 @app.route('/filter_profile', methods=['POST'])
 def filter_profile():
@@ -835,19 +851,30 @@ def filter_profile():
 
     # get all indices for each aid
 
+    assays_to_drop = list(set(assays_to_drop))
+
     idxs = []
-    for aid in assays_to_drop:
+    for aid in set(assays_to_drop):
         idxs = idxs + [i for i, x in enumerate(bioprofile.aids) if x == aid]
 
     # now remove them from cids, aids and outcomes
 
     for idx in sorted(idxs, reverse=True):
-
+        idxs
         del bioprofile.aids[idx]
         del bioprofile.cids[idx]
         del bioprofile.outcomes[idx]
 
-    bioprofile.stats = [profile_stat for profile_stat in bioprofile.stats if profile_stat['aid'] not in assays_to_drop]
+    bioprofile.stats = [profile_stat for profile_stat in bioprofile.stats
+                        if profile_stat['aid'] not in assays_to_drop]
+
+    profile_matrix = bioprofile.to_frame()
+
+    bioprofile.meta['num_total_actives'] = int((profile_matrix == 1).sum().sum())
+    bioprofile.meta['num_total_inactives'] = int((profile_matrix == -1).sum().sum())
+    bioprofile.meta['num_cmps'] = int(profile_matrix.shape[0])
+    bioprofile.meta['num_aids'] = int(profile_matrix.shape[1])
+
 
     bioprofile.to_json(g.user.get_user_folder('profiles'))
 
