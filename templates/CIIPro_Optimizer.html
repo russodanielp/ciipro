@@ -89,9 +89,9 @@
 
                                 <h3><b>Applied Filters: </b></h3>
                                 <div id="applied-filters">
-                                    <div class="applied-filter">
-                                    <div class="stat" data-value="CCR">CCR @</div><div class="thresh" data-value="0.75">0.75</div>
-                                    </div>
+                                <!-- here is where the filters will be stored -->
+
+
                                 </div>
                             </div>
 
@@ -116,14 +116,13 @@
                             <option value="0.7">0.7</option>
                             <option value="0.8">0.8</option>
                             <option value="0.9">0.9</option>
-
                         </select>
 
                             <button onclick="addFilter()" class="btn btn-primary"
                                 value="Add Filter" name="addFilter">Add Filter</button>
 
 
-                            <button onclick="aggFilters()" class="btn btn-primary"
+                            <button onclick="sendFilters()" class="btn btn-primary"
                                 value="Get Filter" name="aggFilters">Get Filter</button>
                          </div>
 
@@ -149,69 +148,33 @@
 
 
 
+
+        refreshProfile();
+        var data = aggFilters();
+
+
         var e = document.getElementById("profile-selection");
+        e.addEventListener("change", function() {
+            refreshProfile();
+        });
+
+
+        function sendFilters() {
+        var filter_data = aggFilters();
+
+        // get current profile
         var currentProfile = e.options[e.selectedIndex].value;
 
-        var queryUrl = $SCRIPT_ROOT + "get_bioprofile/" + currentProfile;
-        var profile_data = JSON.parse(getResponseFromURL(queryUrl));
+        data = {
+            profile_name: currentProfile,
 
-        console.log(queryUrl);
+            filters: filter_data
+        }
 
-        var tsElement = document.getElementById('this_ts');
-        tsElement.innerHTML = profile_data.meta.training_set;
+        postData('/filter_profile', data);
+        refreshProfile();
+    }
 
-        var tsElement = document.getElementById('cmps');
-        tsElement.innerHTML = profile_data.meta.num_cmps;
-
-        var tsElement = document.getElementById('aids');
-        tsElement.innerHTML = profile_data.meta.num_aids;
-
-        var tsElement = document.getElementById('tot_acts');
-        tsElement.innerHTML = profile_data.meta.num_total_actives;
-
-        var tsElement = document.getElementById('tot_inacts');
-        tsElement.innerHTML = profile_data.meta.num_total_inactives;
-
-
-
-        plotHeatMap(profile_data);
-
-
-
-        e.addEventListener("change", function() {
-            var e = document.getElementById("profile-selection");
-            var currentProfile = e.options[e.selectedIndex].value;
-            var queryUrl = $SCRIPT_ROOT + "get_bioprofile/" + currentProfile;
-            var profile_data = JSON.parse(getResponseFromURL(queryUrl));
-            plotHeatMap(profile_data);
-
-            var tsElement = document.getElementById('this_ts');
-            tsElement.innerHTML = profile_data.meta.training_set;
-
-            var tsElement = document.getElementById('cmps');
-            tsElement.innerHTML = profile_data.meta.num_cmps;
-
-            var tsElement = document.getElementById('aids');
-            tsElement.innerHTML = profile_data.meta.num_aids;
-
-            var tsElement = document.getElementById('tot_acts');
-            tsElement.innerHTML = profile_data.meta.num_total_actives;
-
-            var tsElement = document.getElementById('tot_inacts');
-            tsElement.innerHTML = profile_data.meta.num_total_inactives;
-
-            var new_tbody = document.createElement('tbody');
-            addStatsToBody(profile_data.stats, new_tbody);
-            old_tbody.parentNode.replaceChild(new_tbody, old_tbody)
-            old_tbody = document.getElementById('stats-table').getElementsByTagName('tbody')[0];
-
-
-
-
-
-
-
-        });
 
 
     </script>

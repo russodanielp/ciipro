@@ -29,6 +29,40 @@ function addStatsToBody(data, statsTableBody) {
 
 }
 
+
+function refreshProfile() {
+
+    // replaces all the profile data on the optimizer page
+    // and also replorts the heatmap
+
+    var e = document.getElementById("profile-selection");
+    var currentProfile = e.options[e.selectedIndex].value;
+
+    var queryUrl = $SCRIPT_ROOT + "get_bioprofile/" + currentProfile;
+    var profile_data = JSON.parse(getResponseFromURL(queryUrl));
+
+
+    var tsElement = document.getElementById('this_ts');
+    tsElement.innerHTML = profile_data.meta.training_set;
+
+    var tsElement = document.getElementById('cmps');
+    tsElement.innerHTML = profile_data.meta.num_cmps;
+
+    var tsElement = document.getElementById('aids');
+    tsElement.innerHTML = profile_data.meta.num_aids;
+
+    var tsElement = document.getElementById('tot_acts');
+    tsElement.innerHTML = profile_data.meta.num_total_actives;
+
+    var tsElement = document.getElementById('tot_inacts');
+    tsElement.innerHTML = profile_data.meta.num_total_inactives;
+
+
+    // plotHeatMap comes from
+    plotHeatMap(profile_data);
+}
+
+
 function addFilter() {
 
     var statsFilter = document.getElementById("stats-filter");
@@ -37,12 +71,12 @@ function addFilter() {
     var statsThreshold = document.getElementById("stats-threshold");
     var selectedThreshold = statsThreshold.options[statsThreshold.selectedIndex].value;
 
-    console.log(selectedStat, selectedThreshold);
+
     var appliedFilters = document.getElementById('applied-filters');
-    console.log(appliedFilters);
+
 
     var appliedFilter = document.createElement("div");
-    appliedFilter.classname = 'applied-filter';
+    appliedFilter.classList.add("applied-filter");
 
     var newStat = document.createElement("div");
     newStat.classname = "stat";
@@ -64,9 +98,57 @@ function addFilter() {
     appliedFilters.append(appliedFilter);
 
 
+}
 
 
 
 
 
+
+function aggFilters() {
+
+    var statsFilters = document.getElementsByClassName("applied-filter");
+
+    filters = [];
+
+
+    for (var i = 0; i < statsFilters.length; i++) {
+
+        // for each filter the first child node is the stats
+        // and the second is the threshold
+        // values for both are stored in the "data-value" attribute
+        console.log(i);
+        var statVal = statsFilters[i].children[0].getAttribute("data-value");
+        var threshVal = statsFilters[i].children[1].getAttribute("data-value");
+
+        var filter = {
+            stat : statVal,
+            thresh : threshVal
+        };
+
+        filters.push(filter);
+    }
+
+    return filters;
+}
+
+
+
+
+function postData(url, data) {
+    // function that uses fetch model to send the current filters to the flask function
+
+    console.log(data);
+
+    fetch(url, {
+
+            method: 'POST',
+
+            headers: {
+                'Content-type': 'application/json'
+            },
+
+            body: JSON.stringify(data)
+        }
+        )
 }

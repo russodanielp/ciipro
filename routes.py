@@ -802,6 +802,8 @@ def internalServiceError(e):
 
 
 # this is where the RESTFul API will be
+# not sure if the login_required decorator
+# actually works for these
 
 @login_required
 @app.route('/get_bioprofile/<profile_name>')
@@ -810,6 +812,48 @@ def get_bioprofile(profile_name):
     with open(json_filename) as json_file:
         json_data = json.load(json_file)
     return json.dumps(json_data)
+
+
+@login_required
+@app.route('/filter_profile', methods=['POST'])
+def filter_profile():
+    """
+        a post method to receive a users profile filter
+        choices in the CIIPro Optimizer tab
+
+    """
+    json_data = request.get_json()
+
+    print(json_data)
+    bioprofile = g.user.load_bioprofile(json_data['profile_name'])
+
+    assays_to_drop = []
+    for i, profile_stat in enumerate(bioprofile.stats):
+        for filter in json_data['filters']:
+            if profile_stat[filter['stat']] < float(filter['thresh']):
+                assays_to_drop.append(profile_stat['aid'])
+
+    # get all indices for each aid
+
+    idxs = []
+    for aid in assays_to_drop:
+        idxs = idxs + [i for i, x in enumerate(bioprofile.aids) if x == aid]
+
+    # now remove them from cids, aids and outcomes
+
+    for idx in sorted(idxs, reverse=True):
+
+        del bioprofile.aids[idx]
+        del bioprofile.cids[idx]
+        del bioprofile.outcomes[idx]
+
+    bioprofile.stats = [profile_stat for profile_stat in bioprofile.stats if profile_stat['aid'] not in assays_to_drop]
+
+    bioprofile.to_json(g.user.get_user_folder('profiles'))
+
+    return 'OK', 200
+
+
 
 if __name__ == '__main__': #says if this scripts is run directly, start the application
 	app.run()

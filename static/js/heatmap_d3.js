@@ -54,7 +54,7 @@ function plotHeatMap(data) {
     var dataPlot = data.cids.map(function(e, i) {
           return [e, data.aids[i], data.outcomes[i]];
         });
-    console.log(dataPlot)
+
     svg.selectAll()
       .data(dataPlot)
       .enter()
