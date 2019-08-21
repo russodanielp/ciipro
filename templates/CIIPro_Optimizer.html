@@ -102,8 +102,8 @@
                         <div class="col-sm-12">
                         <select id="stats-filter" style="margin-right: 2em">
                             <option value="CCR">CCR</option>
-                            <option value="Sens">Sensitivity</option>
-                            <option value="CCR">Specificity</option>
+                            <option value="Sensitivity">Sensitivity</option>
+                            <option value="Specificity">Specificity</option>
                         </select>
 
                         <select id="stats-threshold" style="margin-right: 2em">
@@ -123,7 +123,11 @@
 
 
                             <button onclick="sendFilters()" class="btn btn-primary"
-                                value="Get Filter" name="aggFilters">Get Filter</button>
+                                value="Apply Filters" name="aggFilters">Apply Filters</button>
+
+                            <button onclick="clearFilters()" class="btn btn-primary"
+                                value="Clear Filters" name="clearFilters">Clear Filters</button>
+
                          </div>
 
 
@@ -156,6 +160,7 @@
         var e = document.getElementById("profile-selection");
         e.addEventListener("change", function() {
             refreshProfile();
+            clearFilters();
         });
 
 
@@ -169,10 +174,11 @@
             profile_name: currentProfile,
 
             filters: filter_data
-        }
+        };
 
         postData('/filter_profile', data);
         refreshProfile();
+        clearFilters();
     }
 
 

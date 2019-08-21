@@ -102,8 +102,17 @@ function addFilter() {
 
 
 
+function clearFilters() {
+
+    // removes the applied filters
+
+    var statsFilters = document.getElementById("applied-filters");
+    while (statsFilters.firstChild) {
+        statsFilters.removeChild(statsFilters.firstChild);
+    }
 
 
+}
 
 function aggFilters() {
 
@@ -117,7 +126,7 @@ function aggFilters() {
         // for each filter the first child node is the stats
         // and the second is the threshold
         // values for both are stored in the "data-value" attribute
-        console.log(i);
+
         var statVal = statsFilters[i].children[0].getAttribute("data-value");
         var threshVal = statsFilters[i].children[1].getAttribute("data-value");
 
