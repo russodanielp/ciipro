@@ -1,4 +1,14 @@
 
+body {
+    background-color: #F0F0F0;
+}
+
+
+/* add a little margin for some rows */
+.top-buffer {
+    margin-top:20px;
+}
+
 .panel-primary {
     color: #05056F;
     border-color: #05056F;
@@ -13,6 +23,24 @@
 .btn-primary {
     background-color: #05056F;
     border: none;
+}
+
+.btn-info {
+    background-color: #6FA5FF;
+    border: none;
+}
+
+.btn-info:hover {
+    background-color: #05056F;
+    border: none;
+}
+
+.btn-info:active {
+    background-color: #6FA5FF;
+}
+
+.btn-info:focus {
+    background-color: #6FA5FF;
 }
 
 .btn-primary:hover {

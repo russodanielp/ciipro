@@ -1,121 +1,71 @@
 {% extends "template.html" %}
 {% block content %}
-		{% if error %}
-			<p class="error"><strong>Error:</strong> {{ error }}</p>
-		{% endif %}
-<style>
-	div.datasets {
 
-    	padding-left: 100px;
-	}
-	div.col-contents {
-		padding-top: 10px;
-		padding-bottom: 10px;
-	}
-</style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/datasets.css') }}">
 
-<div class="datasets">
-		<div class="row">
-			<div class="col-sm-4">
-				<div class="panel panel-primary">
-					<div class="panel-heading">
-						<h3 class="panel-title">Avaialable datasets for <b>{{ username }}</b>:<br></h3>
-					</div>
-					<div class="panel-body">
-						{% if datasets or testsets %}
-						<div class="col-md-6">
-							<div class="col-contents">
-								Training sets:
-									{% if datasets %}
-									<form action="/deletedataset" method="post" enctype="multipart/form-data">
-										{% for dataset in datasets %}
-														{% if datasets.index(dataset) == 0 %}
-											<input type="radio" name="compound_filename" value="{{ dataset }}" checked="checked"> {{ dataset }}
-											</input><br>
-														{% else %}
-											<input type="radio" name="compound_filename" value="{{ dataset }}"> {{ dataset }}
-											</input><br>
-														{% endif %}
-										{% endfor %}
-										<input type="submit" class="btn btn-primary" value = "Delete" name="delete_compound_file"/>
-									{% endif %}
-									</form>
-									{% if not datasets %}
-										No training sets available.  Please upload.
-									{% endif %}
-							</div>
-						</div>
-						<div class="col-md-6">
-							<div class="col-contents">
-								Test sets:
-									{% if testsets %}
-										<form action="/deletetestset" method="post" enctype="multipart/form-data">
-											{% for testset in testsets %}
-                            					{% if testsets.index(testset) == 0 %}
-													<input type="radio" name="testset_filename" value="{{ testset }}" checked="checked"> {{ testset }}
-													</input><br>
-                            					{% else %}
-													<input type="radio" name="testset_filename" value="{{ testset }}"> {{ testset }}
-													</input><br>
-                            					{% endif %}
-											{% endfor %}
-											<input type="submit" class="btn btn-primary" value = "Delete" name=delete_testset_file"/>
-										</form>
-									{% endif %}
-									{% if not testsets %}
-										No test sets available.  Please upload.
-									{% endif %}
-							</div>
-						</div>
-						{% endif %}
-						{% if not datasets or not testsets%}
-						Please upload a training set.
-						{% endif%}
-					</div>
-				</div>
-			</div>
-		</div>
+    <div class="dataset-body">
+        <div class="row">
+          <div class="col-sm-6">
+            <div class="card shadow p-3 mb-5 bg-white rounded" id="dataset-card">
+              <div class="card-body">
+                <h5 class="card-title">Available datasets</h5>
+                  {% if not datasets %}
+                      <p class="card-text">No training sets available.  Please upload.</p>
+                  {% endif %}
+                  {% if datasets %}
+                    <div class="form-group">
+                      <label for="sel1">Select dataset:</label>
+                      <select class="form-control" id="sel1">
+                        {% for dataset in datasets %}
+                            <option value="{{ dataset }}"> {{ dataset }}</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                 {%  endif %}
+                <a href="#" class="btn btn-danger btn-padding">Delete dataset</a>
+              </div>
+            </div>
+          </div>
 
-	<form action="/uploaddataset" method="post" enctype="multipart/form-data">
-		<div class="row">
-			<div class="col-sm-4">
-				<div class="panel panel-primary">
-					<div class="panel-heading">
-						<h3 class="panel-title">Upload Compounds</h3>
-					</div>
-					<div class="panel-body">
-						<div class="row">
-							<div class="col-sm-12">
-								<div class="col-contents">
-									<b>Step 1.</b>Select input type:<br>
-									<select class="form-control" id="sel1", name="input_type">
-										<option value="CID"> PubChem CID</option>
-										<option value="CAS"> CAS Registry Number</option>
-										<option value="name"> IUPAC Name</option>
-										<option value="smiles"> Canonical SMILES</option>
-										<option value="inchikey"> InChIKey</option>
-							 		 </select>
-								</div>
-							</div>
-						</div>
-						<div class="row">
-							<div class="col-sm-12">
-								<div class="col-contents">
-									<b>Step 2.</b> Provide Compounds<br>
-									<input class="btn btn-primary" type="file" name="compound_file"/><br>
-									<b>Upload as a Training Set or Test Set:</b><br>
-										<input type="radio" name="model_type" value="training" checked="checked"> Training Set
-        								</input>
-										<input type="radio" name="model_type" value="test"> Test Set
-        								</input><br>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		<input class="btn btn-primary" type="submit" value="Upload" name="user_input"/>
-	</form>
-</div>
+          <div class="col-sm-6">
+            <div class="card shadow p-3 mb-5 bg-white rounded">
+              <div class="card-body">
+                <svg height="300" width="300">
+                  <circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row top-buffer">
+            <div class="col-sm-12">
+                <div class="card shadow p-3 mb-5 bg-white rounded">
+                  <div class="card-body">
+                      <h5 class="card-title">Uploading datasets</h5>
+                      <p class="card-text">Please select a file to upload a new dataset.</p>
+
+                      <input type="file" class="form-control-file top-padding btm-padding" id="compound_file">
+
+                      <div class="form-group top-padding">
+                        <label for="cmp-id-sel" class="card-text">Compound identifier:</label>
+                          <select class="form-control" id="cmp-id-sel">
+                            <option value="CID"> PubChem CID</option>
+                            <option value="CAS"> CAS Registry Number</option>
+                            <option value="name"> IUPAC Name</option>
+                            <option value="smiles"> Canonical SMILES</option>
+                            <option value="inchikey"> InChIKey</option>
+                          </select>
+                      </div>
+                      <a href="#" class="btn btn-primary btn-padding">Upload dataset</a>
+                  </div>
+                </div>
+              </div>
+        </div>
+    </div>
+    <script>
+
+
+    </script>
+
 {% endblock %}

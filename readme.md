@@ -31,4 +31,4 @@ After installing conda the CIIPro virtual environment can be created using the `
 Deep blue - #05056F
 Blue - #0505FF
 Light blue - #6FA5FF
-Aqua - #DAFBFFgit
+Aqua - #DAFBFF
