@@ -15,6 +15,22 @@
     border: none;
 }
 
+.btn-primary:hover {
+    background-color: #6FA5FF;
+    border: #05056F;
+}
+
+.btn-primary:active {
+    background-color: #F0F0F0;
+    color: #05056F;
+    border: none;
+}
+
+.btn-primary:focus {
+    background-color: #F0F0F0;
+    color: #05056F;
+    border: none;
+}
 
 .navbar-brand {
     color: #05056F;
@@ -46,3 +62,13 @@
     padding-left: 50px;
     padding-right: 50px;
 }
+
+/* opimizer page */
+
+.optimizer {
+    padding-left: 50px;
+    padding-right: 50px;
+    margin-bottom: 10em;
+}
+
+
