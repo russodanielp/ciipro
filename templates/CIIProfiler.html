@@ -1,75 +1,53 @@
 {% extends "template.html" %}
 {% block content %}
 
-		{% if error %}
-			<p class="error"><strong>Error:</strong> {{ error }}</p>
-		{% endif %}
-<style>
 
-</style>
+<div class="profile-body">
 
-<div class="profile">
+    <div class="row">
+      <div class="col-sm-6">
+        <div class="card shadow p-3 mb-5 bg-white rounded" id="dataset-card">
+          <div class="card-body">
+            <h5 class="card-title">Available datasets</h5>
+              {% if not datasets %}
+                  <p class="card-text">No training sets available.  Please upload.</p>
+              {% endif %}
+              {% if datasets %}
+                <div class="form-group">
+                  <label for="sel1">Select dataset:</label>
+                  <select class="form-control" id="sel1">
+                    {% for dataset in datasets %}
+                        <option value="{{ dataset }}"> {{ dataset }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+             {%  endif %}
+            <a href="#" class="btn btn-primary btn-padding">Profile dataset</a>
+          </div>
+        </div>
+      </div>
 
-<form action="/ciiprofile" method="post" enctype="multipart/form-data" name="">
+      <div class="col-sm-6">
+        <div class="card shadow p-3 mb-5 bg-white rounded">
+          <div class="card-body">
+              <h5 class="card-title">Profiling parameters</h5>
+              <p class="card-text">Set the biological profiling parameters.</p>
 
-    <div class="container-fluid">
-        <div class="row">
+              <div class="form-group">
+                  <label for="noOfActives">Set the miniumum number of actives per assay:</label>
+                  <input style="margin-left: 20px" type="number" value="6" name="noOfActives" min="0" max="30" step="1"/>
+              </div>
 
-			<div class="col-sm-6">
-				<div class="panel panel-primary">
-					{% if datasets %}
-					<div class="panel-heading">
-						<h3 class="panel-title">Available datasets for <b>{{ username }}</b>:<br></h3>
-					</div>
-					<div class="panel-body">
-						{% for dataset in datasets %}
-							{% if datasets.index(dataset) == 0 %}
-								<input type="radio" name="compound_filename" value="{{ dataset }}" checked="checked"/> {{ dataset }}
-								<br>
-							{% else %}
-								<input type="radio" name="compound_filename" value="{{ dataset }}"/> {{ dataset }}
-							<br>
-							{% endif %}
-						{% endfor %}
-					</div>
-					{% endif %}
-					{% if not datasets %}
-					<div class="panel panel-heading">
-						<h3 class="panel-title">No datasets available for <b>{{ username }}.</b></h3>
-					</div>
-					<div class="panel-body">
-						Please upload a data set to profile.
-					</div>
-					{% endif %}
-				</div>
-			</div>
-
-            <div class="col-sm-6">
-				<div class="panel panel-primary">
-					<div class="panel-heading">
-						<h3 class="panel-title">Set Biological Profiling Parameters:<br></h3>
-					</div>
-					<div class="panel-body">
-						Select number of actives to be considered for each bioassay:<br>
-						<br>
-						<b>Recommended:</b> Between 6-10<br>
-						<input type="number" value="6" name="noOfActives" min="0" max="30" step="1"/> <br>
-                        <br>
-						Please give a name for this profile:<br>
-                        <input type="text" id="profile_filename" name="profile_filename"/>
-
-					</div>
-				</div>
-			</div>
-
-		</div>
-
-		<input type="submit" class="btn btn-primary" name="user_input" value="Profile"/>
-
+              <div class="form-group">
+                  <label for="profile_filename">Give a name to the profile:</label>
+                  <input style="margin-left: 20px" type="text" id="profile_filename" name="profile_filename"/>
+              </div>
+          </div>
+        </div>
+      </div>
     </div>
-    </form>
 
-</div>
+<div>
 
     <script>
     n =  new Date();
