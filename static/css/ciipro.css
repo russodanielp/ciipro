@@ -1,0 +1,48 @@
+
+.panel-primary {
+    color: #05056F;
+    border-color: #05056F;
+    background-color: #F0F0F0;
+}
+
+.panel-primary .panel-heading{
+    background-color: #05056F;
+    color: #F0F0F0;
+}
+
+.btn-primary {
+    background-color: #05056F;
+    border: none;
+}
+
+
+.navbar-brand {
+    color: #05056F;
+    font-size: 25px;
+}
+
+.navbar {
+    color: #0505FF;
+    font-size: 20px;
+}
+
+/* for the home page */
+
+.ciipro-overview h3 {
+    color:#05056F;
+    text-align: center
+}
+
+.ciipro-overview p {
+    color:#05056F;
+    text-align: center
+}
+
+
+/* profile page */
+
+.profile {
+
+    padding-left: 50px;
+    padding-right: 50px;
+}

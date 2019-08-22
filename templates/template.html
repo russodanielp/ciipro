@@ -4,10 +4,11 @@
 		<head>
 			<meta charset="utf-8">
    			<meta http-equiv="X-UA-Compatible" content="IE=edge">
-    			<meta name="viewport" content="width=device-width, initial-scale=1">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
 			<link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
-			<img src="static/img/logo.png" style="width254ox;height:178px"<br>
+			<img src="static/img/logo.png" style="height:178px"<br>
 			<script src='https://www.google.com/recaptcha/api.js'></script>
+            <link rel="stylesheet" href="{{ url_for('static', filename='css/ciipro.css') }}">
 		</head>
 		
 			<header>
@@ -46,6 +47,8 @@
 				{% endwith %}
 			</div>
 
+
 			{% block content %}
 			{% endblock %}
+
 	</html>	   	
