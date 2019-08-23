@@ -3,7 +3,7 @@
 
 
 <div class="profile-body">
-
+<form action="/ciiprofile" method="post" enctype="multipart/form-data" name="">
     <div class="row">
       <div class="col-sm-6">
         <div class="card shadow p-3 mb-5 bg-white rounded" id="dataset-card">
@@ -15,14 +15,14 @@
               {% if datasets %}
                 <div class="form-group">
                   <label for="sel1">Select dataset:</label>
-                  <select class="form-control" id="sel1">
+                  <select class="form-control" id="sel1" name="compound_filename">
                     {% for dataset in datasets %}
                         <option value="{{ dataset }}"> {{ dataset }}</option>
                     {% endfor %}
                   </select>
                 </div>
              {%  endif %}
-            <a href="#" class="btn btn-primary btn-padding">Profile dataset</a>
+            <input type="submit" class="btn btn-primary btn-padding" value="Profile dataset"/>
           </div>
         </div>
       </div>
@@ -46,8 +46,8 @@
         </div>
       </div>
     </div>
-
-<div>
+</form>
+</div>
 
     <script>
     n =  new Date();

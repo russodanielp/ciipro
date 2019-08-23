@@ -539,9 +539,6 @@ def CIIProfile():
         profile_matrix = bioprofile.to_frame()
 
 
-        profile_matrix.to_csv('{}.csv'.format(bioprofile.name))
-
-
         flash('Success! A profile was created consisting '
               'of {0} compounds and {1} bioassays'.format(profile_matrix.shape[0], profile_matrix.shape[1]), 'info')
         return render_template('CIIProfiler.html', stats=None, datasets=g.user.get_user_datasets(set_type='training'))

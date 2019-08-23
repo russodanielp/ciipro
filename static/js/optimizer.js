@@ -75,18 +75,19 @@ function addFilter() {
     var appliedFilters = document.getElementById('applied-filters');
 
 
-    var appliedFilter = document.createElement("div");
+    var appliedFilter = document.createElement("li");
     appliedFilter.classList.add("applied-filter");
+    appliedFilter.classList.add("list-group-item");
 
-    var newStat = document.createElement("div");
+    var newStat = document.createElement("span");
     newStat.classname = "stat";
     newStat.setAttribute("data-value", selectedStat)
-    newStatText = document.createTextNode(selectedStat + " @");
+    newStatText = document.createTextNode(selectedStat + " @ ");
     newStat.appendChild(newStatText);
 
     appliedFilter.appendChild(newStat);
 
-    var threshold = document.createElement("div");
+    var threshold = document.createElement("span");
     threshold.classname = "thresh";
     threshold.setAttribute("data-value", selectedThreshold);
 

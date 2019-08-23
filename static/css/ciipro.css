@@ -13,6 +13,19 @@ body {
     margin-top:20px;
 }
 
+.btn-padding {
+    margin-top:10px;
+}
+
+.top-padding {
+    margin-top:10px;
+}
+
+btm-padding {
+    margin-bottom: 10px;
+}
+
+
 .panel-primary {
     color: #05056F;
     border-color: #05056F;
