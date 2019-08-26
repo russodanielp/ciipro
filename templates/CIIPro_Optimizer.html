@@ -2,10 +2,15 @@
 {% block content %}
 
 <script src="../static/js/heatmap_d3.js"></script>
-
+<script src="https://d3js.org/d3.v4.js"></script>
+<script src="../static/js/requests.js"></script>
 <script src="../static/js/optimizer.js"></script>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/optimizer.css') }}">
 
+
+<script type=text/javascript>
+  $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+</script>
 
 <div class="optimizer-body" >
 
@@ -118,9 +123,6 @@
 <script>
 
 
-
-
-    displayStackedBar();
     refreshProfile();
     var data = aggFilters();
 
