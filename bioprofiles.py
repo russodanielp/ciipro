@@ -65,6 +65,17 @@ class Bioprofile:
         profile.columns = list(map(int, profile.columns))
         return profile
 
+    def classification_overview(self):
+        """ returns a dictionary keyed by the aids in the bioprofile with a
+        tuple of active/inactive counts as values"""
+
+        df = self.to_frame().astype(float)
+
+
+        print((df == -1).sum())
+
+
+
     @classmethod
     def from_json(cls, json_filename):
         with open(json_filename) as json_file:
@@ -85,4 +96,4 @@ if __name__ == '__main__':
 
     bioprofile = Bioprofile.from_json('resources/my_profile.json')
 
-    print(bioprofile.to_frame())
+    print(bioprofile.classification_overview())

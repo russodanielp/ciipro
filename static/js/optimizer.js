@@ -101,7 +101,7 @@ function addFilter() {
 
 }
 
-function deleteProfile() {
+function devareProfile() {
     var e = document.getElementById("profile-selection");
     var currentProfile = e.options[e.selectedIndex].value;
 
@@ -110,7 +110,7 @@ function deleteProfile() {
         profile_name: currentProfile
     }
 
-    postData('/delete_profile', data);
+    postData('/devare_profile', data);
 
     location.reload();
 }
@@ -173,3 +173,4 @@ function postData(url, data) {
         }
         )
 }
+

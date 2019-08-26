@@ -14,7 +14,7 @@
                         {% if profiles %}
                         <div class="form-group">
                           <label for="sel1">Select profile:</label>
-                          <select class="form-control" id="profile-selection">
+                          <select class="form-control" id="profile-selection" name="profile_filename">
                             {% for profile in profiles %}
                                 <option value="{{ profile }}"> {{ profile }}</option>
                             {% endfor %}
@@ -123,6 +123,19 @@
 
         </div>
 
+        {% if data %}
+
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card shadow p-3 mb-5 bg-white rounded" id="dataset-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Prediction results</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% endif %}
 
     </form>
 </div>

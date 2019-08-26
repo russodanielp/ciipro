@@ -560,112 +560,106 @@ def CIIPPredict():
     """
 
     if request.method == 'POST':
-        if request.form['Submit'] == 'Delete':
 
-            profile_filename = '{}.json'.format(str(request.form['profile_filename']))
-            os.remove(os.path.join(g.user.get_user_folder('profiles'), profile_filename))
-            return redirect(url_for('CIIPPredictor'))
 
-        elif request.form['Submit'] == 'Submit':
+        profile_filename = request.form['profile_filename']
+        compound_filename = request.form['compound_filename']
 
-            profile_filename = request.form['profile_filename']
-            compound_filename = request.form['compound_filename']
+        biosim_cutoff = float(request.form['cutoff'])
+        conf_cutoff = float(request.form['conf'])
+        nn_cutoff = float(request.form['nns'])
 
-            biosim_cutoff = float(request.form['cutoff'])
-            conf_cutoff = float(request.form['conf'])
-            nn_cutoff = float(request.form['nns'])
+        training_profile = g.user.load_bioprofile(profile_filename)
 
-            training_profile = g.user.load_bioprofile(profile_filename)
+        training_matrix = training_profile.to_frame()
 
-            training_matrix = training_profile.to_frame()
+        training_data = g.user.load_dataset(training_profile.meta['training_set'])
 
-            training_data = g.user.load_dataset(training_profile.meta['training_set'])
-
-            test_data = g.user.load_dataset(compound_filename)
+        test_data = g.user.load_dataset(compound_filename)
 
 
 
-            # get a full test set profile
-            print(training_data, test_data)
-            test_profile_json = test_data.get_bioprofile()
+        # get a full test set profile
+        print(training_data, test_data)
+        test_profile_json = test_data.get_bioprofile()
 
-            # I guess since a lot of these dont get used might be better to
-            # create two classes one for training profiles and one for test
-            test_profile = bp.Bioprofile(None,
-                                         test_profile_json['cids'],
-                                         test_profile_json['aids'],
-                                         test_profile_json['outcomes'],
-                                         None,
-                                         None)
+        # I guess since a lot of these dont get used might be better to
+        # create two classes one for training profiles and one for test
+        test_profile = bp.Bioprofile(None,
+                                     test_profile_json['cids'],
+                                     test_profile_json['aids'],
+                                     test_profile_json['outcomes'],
+                                     None,
+                                     None)
 
-            test_matrix = test_profile.to_frame()
+        test_matrix = test_profile.to_frame()
 
-            # only use the intersection of the test profile and the training profile
-            shared_assays = training_matrix.columns.intersection(test_matrix.columns)
+        # only use the intersection of the test profile and the training profile
+        shared_assays = training_matrix.columns.intersection(test_matrix.columns)
 
-            # TODO: Need to come up with an error if no test compounds have assays in the training profile
+        # TODO: Need to come up with an error if no test compounds have assays in the training profile
 
-            # align both axis
-            test_matrix = test_matrix.loc[:, shared_assays]
-            training_matrix = training_matrix.loc[:, shared_assays]
+        # align both axis
+        test_matrix = test_matrix.loc[:, shared_assays]
+        training_matrix = training_matrix.loc[:, shared_assays]
 
-            trainin_activites = training_data.get_activities(use_cids=True)
-            trainin_activites = trainin_activites[training_matrix.index]
+        trainin_activites = training_data.get_activities(use_cids=True)
+        trainin_activites = trainin_activites[training_matrix.index]
 
-            # currently weight is ratio of actives:inactives in training profile
-            # but never have it above 1
-            # TODO: add this as a paramater to let users choose
+        # currently weight is ratio of actives:inactives in training profile
+        # but never have it above 1
+        # TODO: add this as a paramater to let users choose
 
-            act_to_inact_ratio =(training_matrix == 1).sum().sum() / (training_matrix == -1).sum().sum()
+        act_to_inact_ratio =(training_matrix == 1).sum().sum() / (training_matrix == -1).sum().sum()
 
-            inact_weight = act_to_inact_ratio if act_to_inact_ratio <= 1 else 1
+        inact_weight = act_to_inact_ratio if act_to_inact_ratio <= 1 else 1
 
-            biodis, conf = biosim.biosimilarity_distances(test_matrix.values,
-                                                          training_matrix.values,
-                                                          weight=inact_weight)
+        biodis, conf = biosim.biosimilarity_distances(test_matrix.values,
+                                                      training_matrix.values,
+                                                      weight=inact_weight)
 
-            biosimilarity = 1-biodis
+        biosimilarity = 1-biodis
 
-            bio_nns = biosim.get_k_bioneighbors(biosimilarity, conf,
-                                            k=nn_cutoff,
-                                            biosim_cutoff=biosim_cutoff,
-                                            conf_cutoff=conf_cutoff)
+        bio_nns = biosim.get_k_bioneighbors(biosimilarity, conf,
+                                        k=nn_cutoff,
+                                        biosim_cutoff=biosim_cutoff,
+                                        conf_cutoff=conf_cutoff)
 
-            train_fps = training_data.get_pubchem_fps()
-            test_fps = test_data.get_pubchem_fps()
+        train_fps = training_data.get_pubchem_fps()
+        test_fps = test_data.get_pubchem_fps()
 
-            # make sure axis are aligned
-            train_fps = train_fps.loc[training_matrix.index]
-            test_fps = test_fps.loc[test_matrix.index]
-
-
-            # now get chem similarity
-            chemdis = biosim.chem_distances(test_fps.values, train_fps.values)
-            chemsim = 1-chemdis
-            chem_nns = biosim.get_k_chem_neighbors(chemsim, k=nn_cutoff)
-
-            # now package is all up in a json ob
-
-            data = []
-
-            for i, test_cmp in enumerate(test_matrix.index):
-
-                test_cmp_data = {}
-                test_cmp_data["cid"] = int(test_cmp)
-                test_cmp_data['bionn'] = list(map(int, training_matrix.index[bio_nns[i]]))
-                test_cmp_data['bioSims'] = list(map(float, biosimilarity[i, bio_nns[i]]))
-                test_cmp_data['bioConf'] = list(map(float, conf[i, bio_nns[i]]))
-                test_cmp_data['bioPred'] = float(trainin_activites[training_matrix.index[bio_nns[i]]].mean())
-
-                test_cmp_data['chemnn'] = list(map(int, training_matrix.index[chem_nns[i]]))
-                test_cmp_data['chemSims'] = list(map(float, chemsim[i, chem_nns[i]]))
-                test_cmp_data['chemPred'] = float(trainin_activites[training_matrix.index[chem_nns[i]]].mean())
-                data.append(test_cmp_data)
+        # make sure axis are aligned
+        train_fps = train_fps.loc[training_matrix.index]
+        test_fps = test_fps.loc[test_matrix.index]
 
 
-            return render_template('CIIPPredictor.html',
-                                   testsets=g.user.get_user_datasets(set_type='test'),
-                                   data=data)
+        # now get chem similarity
+        chemdis = biosim.chem_distances(test_fps.values, train_fps.values)
+        chemsim = 1-chemdis
+        chem_nns = biosim.get_k_chem_neighbors(chemsim, k=nn_cutoff)
+
+        # now package is all up in a json ob
+
+        data = []
+
+        for i, test_cmp in enumerate(test_matrix.index):
+
+            test_cmp_data = {}
+            test_cmp_data["cid"] = int(test_cmp)
+            test_cmp_data['bionn'] = list(map(int, training_matrix.index[bio_nns[i]]))
+            test_cmp_data['bioSims'] = list(map(float, biosimilarity[i, bio_nns[i]]))
+            test_cmp_data['bioConf'] = list(map(float, conf[i, bio_nns[i]]))
+            test_cmp_data['bioPred'] = float(trainin_activites[training_matrix.index[bio_nns[i]]].mean())
+
+            test_cmp_data['chemnn'] = list(map(int, training_matrix.index[chem_nns[i]]))
+            test_cmp_data['chemSims'] = list(map(float, chemsim[i, chem_nns[i]]))
+            test_cmp_data['chemPred'] = float(trainin_activites[training_matrix.index[chem_nns[i]]].mean())
+            data.append(test_cmp_data)
+
+
+        return render_template('CIIPPredictor.html',
+                               testsets=g.user.get_user_datasets(set_type='test'),
+                               data=data)
 
 
 
@@ -800,6 +794,19 @@ def internalServiceError(e):
 # this is where the RESTFul API will be
 # not sure if the login_required decorator
 # actually works for these
+
+@login_required
+@app.route('/get_dataset_overview/<dataset_name>')
+def get_dataset_overview(dataset_name):
+    print(dataset_name)
+    ds = g.user.load_dataset(dataset_name)
+    actives, inactives = ds.get_classifications_overview()
+    data  = {
+        'name': dataset_name,
+        'actives': int(actives),
+        'inactives': int(inactives)
+    }
+    return json.dumps(data)
 
 @login_required
 @app.route('/get_bioprofile/<profile_name>')

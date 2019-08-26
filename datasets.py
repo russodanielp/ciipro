@@ -152,6 +152,9 @@ class DataSet:
         fps = [hex_to_fps(data['Fingerprint SubStructure Keys']) for data in query_list]
         return pd.DataFrame(fps, index=cids)
 
+    def get_classifications_overview(self):
+        activities = self.get_activities()
+        return (activities == 1).sum(), (activities == 0).sum()
 
     def to_json(self, profiles_dir: str):
         with open(os.path.join(profiles_dir, '{}.json'.format(self.name))) as json_file:
@@ -199,4 +202,4 @@ if __name__ == '__main__':
     json_data = datasets_io.load_json(r'D:\ciipro\swatisha\datasets\training_set_with_cas.json')
     ds = make_dataset(json_data)
 
-    print(ds.get_bioprofile().head())
+    print(ds.get_classifications_overview())
