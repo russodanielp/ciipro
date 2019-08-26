@@ -1,6 +1,8 @@
 {% extends "template.html" %}
 {% block content %}
 
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/predictor.css') }}">
 <div class="predictor-body">
     <form action="/CIIPPredict" method="post" enctype="multipart/form-data">
         <div class="row">
@@ -130,6 +132,56 @@
                 <div class="card shadow p-3 mb-5 bg-white rounded" id="dataset-card">
                     <div class="card-body">
                         <h5 class="card-title">Prediction results</h5>
+                        <div class="table-wrapper-scroll-y my-custom-scrollbar">
+
+                          <table class="table table-bordered table-striped mb-0">
+                            <thead>
+                              <tr>
+                                  <th scope="row" id="test-cmp-header">{{ data|length }} Test Compounds</th>
+                                  <th scope="row" id="BioNN">Bio NNs</th>
+                                  <th scope="row" id="BioNN-pred">Bio-Prediction</th>
+                                  <th scope="row" id="ChemNN">Chem NNs</th>
+                                  <th scope="row" id="ChemNN-pred">Chem-Prediction</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                            {% for datum in data %}
+
+                              <tr>
+                                  <th scope="row" id="{{ datum.cid }}">
+                                      <a href="https://pubchem.ncbi.nlm.nih.gov/compound/{{ datum.cid }}"
+                                         target="_blank">{{ datum.cid }}</a></th>
+                                <td id="{{ datum.cid }}-bionns">
+                                    {% for bionn in datum.bionn %}
+                                    <a href="https://pubchem.ncbi.nlm.nih.gov/compound/{{ bionn }}" target="_blank">
+                                    {{ bionn }}&nbsp
+                                    </a>
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    <biopred id="pred-bionns">
+                                    {{ datum.bioPred }}
+                                    </biopred>
+                                </td>
+                                <td id="{{ datum.cid }}-chemnns">
+                                    {% for chemnn in datum.chemnn %}
+                                    <a href="https://pubchem.ncbi.nlm.nih.gov/compound/{{ chemnn }}" target="_blank">
+                                    {{ chemnn }}&nbsp
+                                    </a>
+                                    {% endfor %}
+                                </td>
+                                 <td>
+                                    <chemnns id="pred-chemnns">
+                                    {{ datum.chemPred }}
+                                    </chemnns>
+                                 </td>
+                              </tr>
+
+                            {% endfor %}
+                            </tbody>
+                          </table>
+
+                        </div>
                     </div>
                 </div>
             </div>
