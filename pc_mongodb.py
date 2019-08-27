@@ -53,6 +53,7 @@ class PCCollection:
 compounds_db = PCCollection(pubchem.compounds)
 synonyms_db = PCCollection(pubchem.synonyms)
 outcomes_db = PCCollection(pubchem.outcomes)
+bioassays_db = PCCollection(pubchem.bioassay)
 
 # print(outcomes_db.query_list([2244], 'CID', ['AID', 'Outcome']))
 

@@ -4,6 +4,7 @@
 import json, os
 import pandas as pd
 import numpy as np
+from pc_mongodb import bioassays_db
 
 class Bioprofile:
 
@@ -66,14 +67,19 @@ class Bioprofile:
         return profile
 
     def classification_overview(self):
-        """ returns a dictionary keyed by the aids in the bioprofile with a
-        tuple of active/inactive counts as values"""
+        """ returns a dataframe of the actives and inactives counts for each assay in the bioprofile """
 
         df = self.to_frame().astype(float)
 
+        class_overview = pd.DataFrame()
+        class_overview['actives'] = (df == 1).sum()
+        class_overview['inactives'] = (df == -1).sum()
 
-        print((df == -1).sum())
+        return class_overview
 
+    def get_bioassay_info(self):
+        unique_aids = [str(aid) for aid in set(self.aids)]
+        return bioassays_db.query_list(unique_aids, 'AID', ['Source', 'Description'])
 
 
     @classmethod
@@ -92,8 +98,6 @@ if __name__ == '__main__':
 
     fake_query = pd.read_csv('resources/bioprofile.csv')
 
-
-
     bioprofile = Bioprofile.from_json('resources/my_profile.json')
 
-    print(bioprofile.classification_overview())
+    print(bioprofile.get_bioassay_info())

@@ -1,33 +1,6 @@
 // Functions to support the optimizter page
 
 
-function addStatsToBody(data, statsTableBody) {
-
-
-
-
-    for (var i = 0; data.length; i++){
-        var newRow   = statsTableBody.insertRow();
-
-        var newAID  = newRow.insertCell(0);
-        var newText  = document.createTextNode(data[i].aid);
-        newAID.appendChild(newText);
-
-        var newSens  = newRow.insertCell(1);
-        var newText  = document.createTextNode(data[i].Sensitivity);
-        newSens.appendChild(newText);
-
-        var newSpec  = newRow.insertCell(2);
-        var newText  = document.createTextNode(data[i].Specificity);
-        newSpec.appendChild(newText);
-
-        var newCCR  = newRow.insertCell(3);
-        var newText  = document.createTextNode(data[i].CCR);
-        newCCR.appendChild(newText);
-
-    }
-
-}
 
 
 function refreshProfile() {
@@ -64,6 +37,7 @@ function refreshProfile() {
     // plotHeatMap(profile_data);
 
     aidStackedBar(classificationData);
+    tableUpdate();
 }
 
 
@@ -105,7 +79,7 @@ function addFilter() {
 
 }
 
-function devareProfile() {
+function deleteProfile() {
     var e = document.getElementById("profile-selection");
     var currentProfile = e.options[e.selectedIndex].value;
 
@@ -114,7 +88,7 @@ function devareProfile() {
         profile_name: currentProfile
     }
 
-    postData('/devare_profile', data);
+    postData('/delete_profile', data);
 
     location.reload();
 }
@@ -235,7 +209,12 @@ function aidStackedBar(data){
 
 svg.append("g")
     .attr("transform", "translate(0," + y(0) + ")")
-    .call(d3.axisBottom(x));
+    .call(d3.axisBottom(x))
+    .selectAll("text")
+    .style("text-anchor", "end")
+    .attr("dx", "-.8em")
+    .attr("dy", ".15em")
+    .attr("transform", "rotate(-65)");
 
 svg.append("g")
     .attr("transform", "translate(" + margin.left + ",0)")
@@ -248,5 +227,69 @@ function stackMin(serie) {
 function stackMax(serie) {
   return d3.max(serie, function(d) { return d[1]; });
 }
+
+}
+
+function tableUpdate() {
+
+    var e = document.getElementById("profile-selection");
+    var currentProfile = e.options[e.selectedIndex].value;
+
+
+    var queryUrlDesc = $SCRIPT_ROOT + "get_bioprofile_descriptions/" + currentProfile;
+    var descData = JSON.parse(getResponseFromURL(queryUrlDesc));
+
+    var tableScroll = $("#assay-overview").empty();
+
+    var table = $('<table></table>').addClass("table table-bordered table-striped mb-0");
+
+    tableScroll.append(table);
+    var head = $("                            <thead>\n" +
+        "                              <tr>\n" +
+        "                                  <th scope=\"row\" >AID</th>\n" +
+        "                                  <th scope=\"row\" >No. Actives</th>\n" +
+        "                                  <th scope=\"row\" >No. Inactives</th>\n" +
+        "                                  <th scope=\"row\" >Source</th>\n" +
+        "                                  <th scope=\"row\" >Description</th>\n" +
+        "                              </tr>\n" +
+        "                            </thead>");
+
+    table.append(head);
+
+    var tableBody = $('<tbody></tbody>')
+
+    table.append(tableBody);
+
+    for (var i = 0; i < descData.length; i++) {
+
+
+        var row = $("<tr></tr>");
+
+        tableBody.append(row);
+
+        var rowHead = $("<th scope=\"row\"></th>");
+        var rowLink = $("<a target=\"_blank\"></a>");
+
+        rowLink.attr("href", "https://pubchem.ncbi.nlm.nih.gov/assay/" + descData[i].AID.toString());
+
+        console.log(rowLink);
+        rowHead.append(rowLink);
+        rowLink.text(descData[i].AID);
+        row.append(rowHead);
+
+        var actives = $("<td></td>").text(descData[i].no_actives.toString());
+        row.append(actives);
+
+        var inactives = $("<td></td>").text(descData[i].no_inactives.toString());
+        row.append(inactives);
+
+        var source = $("<td></td>").text(descData[i].Source);
+        row.append(source);
+
+        var desc = $("<td></td>").text(descData[i].Description);
+        row.append(desc);
+
+    }
+
 
 }

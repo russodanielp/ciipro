@@ -816,6 +816,46 @@ def get_bioprofile(profile_name):
         json_data = json.load(json_file)
     return json.dumps(json_data)
 
+@login_required
+@app.route('/get_bioprofile_class_overview/<profile_name>')
+def get_bioprofile_class_overview(profile_name):
+    bioprofile = g.user.load_bioprofile(profile_name)
+
+    class_overview = bioprofile.classification_overview().to_dict()
+
+    # convert to a json format for plotting in d3
+    json_data = []
+
+    for aid in class_overview['inactives']:
+        row = {}
+        row['inactives'] = int(class_overview['inactives'][aid])
+        row['actives'] = int(class_overview['actives'][aid])
+        row['aid'] = int(aid)
+        json_data.append(row)
+
+    return json.dumps(json_data)
+
+@login_required
+@app.route('/get_bioprofile_descriptions/<profile_name>')
+def get_bioprofile_descriptions(profile_name):
+
+    bioprofile = g.user.load_bioprofile(profile_name)
+
+    class_overview = bioprofile.classification_overview()
+    descriptions = bioprofile.get_bioassay_info()
+
+
+    for desc in descriptions:
+        desc['no_inactives'] = int(class_overview.loc[int(desc['AID']), 'inactives'])
+        desc['no_actives'] = int(class_overview.loc[int(desc['AID']), 'actives'])
+
+        # the desciption is too long so just take the first sentence
+        desc['Description'] = desc['Description']
+        desc['AID'] = int(desc['AID'])
+
+
+    return json.dumps(descriptions)
+
 
 
 @login_required
