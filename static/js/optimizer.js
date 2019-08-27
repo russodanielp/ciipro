@@ -157,10 +157,12 @@ function aidStackedBar(data){
     // This is necessary for
     d3.select("#stackedBar").select("svg").remove();
 
+    var cardBody = d3.select("#bar-card-body");
+    currentWidth = parseInt(cardBody.style("width"));
 
     // set the dimensions and margins of the graph
     var margin = {top: 30, right: 30, bottom: 30, left: 30},
-      width = 750 - margin.left - margin.right,
+      width = currentWidth - margin.left - margin.right,
       height = 750 - margin.top - margin.bottom;
 
     // append the svg object to the body of the page
@@ -171,6 +173,7 @@ function aidStackedBar(data){
     .append("g")
       .attr("transform",
             "translate(" + margin.left + "," + margin.top + ")");
+
 
 
 
@@ -207,6 +210,8 @@ function aidStackedBar(data){
     .attr("y", function(d) { return y(d[1]); })
     .attr("height", function(d) { return y(d[0]) - y(d[1]); })
 
+
+
 svg.append("g")
     .attr("transform", "translate(0," + y(0) + ")")
     .call(d3.axisBottom(x))
@@ -216,9 +221,12 @@ svg.append("g")
     .attr("dy", ".15em")
     .attr("transform", "rotate(-65)");
 
+
 svg.append("g")
     .attr("transform", "translate(" + margin.left + ",0)")
     .call(d3.axisLeft(y));
+
+
 
 function stackMin(serie) {
   return d3.min(serie, function(d) { return d[0]; });
