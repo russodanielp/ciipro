@@ -272,7 +272,6 @@ function tableUpdate() {
 
         rowLink.attr("href", "https://pubchem.ncbi.nlm.nih.gov/assay/" + descData[i].AID.toString());
 
-        console.log(rowLink);
         rowHead.append(rowLink);
         rowLink.text(descData[i].AID);
         row.append(rowHead);
@@ -292,4 +291,32 @@ function tableUpdate() {
     }
 
 
+}
+
+function addToolButton() {
+
+            var dropdownDiv = $("#dropdown-page-tools");
+
+            var button = $("                      <button class=\"btn btn-info\" style=\"margin-left: 10px\" type=\"button\" id=\"dropdownMenuButton\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\">\n" +
+                "                        <i class=\"fas fa-chevron-circle-down\"></i>\n" +
+                "                        <span style=\"margin-left: 5px\">Actions</span>\n" +
+                "                      </button>");
+
+            var dropdown = $("<div class=\"dropdown-menu\" aria-labelledby=\"dropdownMenuButton\"></div>")
+
+
+            var link = $("<a onclick=\"downloadProfile()\" class=\"dropdown-item\" href=\"#\"><i class=\"fas fa-download\"></i><span style=\"margin-left: 10px\">Download bioprofile</span></a>");
+
+            dropdown.append(link);
+
+            dropdownDiv.append(button);
+            dropdownDiv.append(dropdown);
+}
+
+function downloadProfile() {
+    var e = document.getElementById("profile-selection");
+    var currentProfile = e.options[e.selectedIndex].value;
+    var queryUrl = $SCRIPT_ROOT + "download_bioprofile/" + currentProfile;
+
+    window.open(queryUrl);
 }

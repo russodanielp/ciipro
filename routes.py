@@ -816,6 +816,14 @@ def get_bioprofile(profile_name):
         json_data = json.load(json_file)
     return json.dumps(json_data)
 
+
+@login_required
+@app.route('/download_bioprofile/<profile_name>')
+def download_bioprofile(profile_name):
+    bioprofile = g.user.load_bioprofile(profile_name)
+    as_frame = bioprofile.to_frame()
+    return as_frame.to_csv()
+
 @login_required
 @app.route('/get_bioprofile_class_overview/<profile_name>')
 def get_bioprofile_class_overview(profile_name):
