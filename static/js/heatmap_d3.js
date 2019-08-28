@@ -1,9 +1,5 @@
 
-function plotHeatMap(data) {
-
-
-    // This is necessary for
-    d3.select("#heatmap").select("svg").remove();
+function plotHeatMap(root, data) {
 
 
     // set the dimensions and margins of the graph
@@ -12,13 +8,12 @@ function plotHeatMap(data) {
       height = 750 - margin.top - margin.bottom;
 
     // append the svg object to the body of the page
-    var svg = d3.select("#heatmap")
-    .append("svg")
-      .attr("width", width + margin.left + margin.right)
-      .attr("height", height + margin.top + margin.bottom)
-    .append("g")
-      .attr("transform",
-            "translate(" + margin.left + "," + margin.top + ")");
+
+    var svg = root.append("svg")
+              .attr("width", width + margin.left + margin.right)
+              .attr("height", height + margin.top + margin.bottom)
+              .append("g")
+              .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
     function onlyUnique(value, index, self) {
     return self.indexOf(value) === index;

@@ -34,7 +34,7 @@ function refreshProfile() {
     var classificationData = JSON.parse(getResponseFromURL(queryUrlClassification));
 
     // plotHeatMap comes from
-    // plotHeatMap(profile_data);
+
 
     aidStackedBar(classificationData);
     tableUpdate();
@@ -313,9 +313,14 @@ function addToolButton() {
             var dropdown = $("<div class=\"dropdown-menu\" aria-labelledby=\"dropdownMenuButton\"></div>")
 
 
-            var link = $("<a onclick=\"downloadProfile()\" class=\"dropdown-item\" href=\"#\"><i class=\"fas fa-download\"></i><span style=\"margin-left: 10px\">Download bioprofile</span></a>");
+            var downloadPRofileLink = $("<a onclick=\"downloadProfile()\" class=\"dropdown-item\"" +
+                " href=\"#\"><i class=\"fas fa-download\"></i><span style=\"margin-left: 10px\">Download bioprofile</span></a>");
 
-            dropdown.append(link);
+            var displayHeatmapLink = $("<a onclick=\"displayHeatmap()\" class=\"dropdown-item\"" +
+                " href=\"#\"><i class=\"fas fa-tv\"></i><span style=\"margin-left: 10px\">Display Heatmap</span></a>");
+
+            dropdown.append(downloadPRofileLink);
+            dropdown.append(displayHeatmapLink);
 
             dropdownDiv.append(button);
             dropdownDiv.append(dropdown);
@@ -327,4 +332,21 @@ function downloadProfile() {
     var queryUrl = $SCRIPT_ROOT + "download_bioprofile/" + currentProfile;
 
     window.open(queryUrl);
+}
+
+function displayHeatmap() {
+    var e = document.getElementById("profile-selection");
+    var currentProfile = e.options[e.selectedIndex].value;
+    var queryUrl = $SCRIPT_ROOT + "get_bioprofile/" + currentProfile;
+    var profile_data = JSON.parse(getResponseFromURL(queryUrl));
+
+    var newWindow = window.open('', '', "height=750,width=750");
+    newWindowRoot = d3.select(newWindow.document.body)
+                    .attr("width","750")
+                    .attr("height","750")
+                    .attr("margin","50px auto");
+
+
+    plotHeatMap(newWindowRoot, profile_data);
+
 }
