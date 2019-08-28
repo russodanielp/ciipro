@@ -157,13 +157,16 @@ function aidStackedBar(data){
     // This is necessary for
     d3.select("#stackedBar").select("svg").remove();
 
-    var cardBody = d3.select("#bar-card-body");
+    var cardBody = d3.select("#stacked-bar-body");
     currentWidth = parseInt(cardBody.style("width"));
 
     // set the dimensions and margins of the graph
-    var margin = {top: 30, right: 30, bottom: 30, left: 30},
+    var margin = {top: 30, right: 10, bottom: 30, left: 10},
       width = currentWidth - margin.left - margin.right,
       height = 750 - margin.top - margin.bottom;
+
+
+
 
     // append the svg object to the body of the page
     var svg = d3.select("#stackedBar")
@@ -175,13 +178,8 @@ function aidStackedBar(data){
             "translate(" + margin.left + "," + margin.top + ")");
 
 
-
-
     stack = d3.stack().keys(["inactives", "actives"]);
     series = stack(data);
-
-    console.log(series);
-    //colour scale
 
 
     var x = d3.scaleBand()
@@ -201,40 +199,40 @@ function aidStackedBar(data){
       .selectAll("g")
       .data(series)
       .enter().append("g")
-        .attr("fill", function(d) { return z(d.key); })
+      .attr("fill", function(d) { return z(d.key); })
       .selectAll("rect")
       .data(function(d) { return d; })
       .enter().append("rect")
-        .attr("width", x.bandwidth)
-        .attr("x", function(d) { return x(d.data.aid); })
-    .attr("y", function(d) { return y(d[1]); })
-    .attr("height", function(d) { return y(d[0]) - y(d[1]); })
+      .attr("width", x.bandwidth)
+      .attr("x", function(d) { return x(d.data.aid); })
+      .attr("y", function(d) { return y(d[1]); })
+      .attr("height", function(d) { return y(d[0]) - y(d[1]); });
 
 
 
-svg.append("g")
-    .attr("transform", "translate(0," + y(0) + ")")
-    .call(d3.axisBottom(x))
-    .selectAll("text")
-    .style("text-anchor", "end")
-    .attr("dx", "-.8em")
-    .attr("dy", ".15em")
-    .attr("transform", "rotate(-65)");
+    svg.append("g")
+        .attr("transform", "translate(0," + y(0) + ")")
+        .call(d3.axisBottom(x))
+        .selectAll("text")
+        .style("text-anchor", "end")
+        .attr("dx", "-.8em")
+        .attr("dy", ".15em")
+        .attr("transform", "rotate(-65)");
 
 
-svg.append("g")
-    .attr("transform", "translate(" + margin.left + ",0)")
-    .call(d3.axisLeft(y));
+    svg.append("g")
+        .attr("transform", "translate(" + margin.left + ",0)")
+        .call(d3.axisLeft(y));
 
 
 
-function stackMin(serie) {
-  return d3.min(serie, function(d) { return d[0]; });
-}
+    function stackMin(serie) {
+      return d3.min(serie, function(d) { return d[0]; });
+    }
 
-function stackMax(serie) {
-  return d3.max(serie, function(d) { return d[1]; });
-}
+    function stackMax(serie) {
+      return d3.max(serie, function(d) { return d[1]; });
+    }
 
 }
 

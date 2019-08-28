@@ -10,3 +10,15 @@ overflow: auto;
 .table-wrapper-scroll-y {
 display: block;
 }
+
+.tooltip {
+  position: absolute;
+  text-align: center;
+  width: 60px;
+  height: 30px;
+  padding: 8px;
+  margin-top: -20px;
+  font: 20px sans-serif;
+  background: #ddd;
+  pointer-events: none;
+}
