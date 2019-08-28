@@ -161,7 +161,7 @@ function aidStackedBar(data){
     currentWidth = parseInt(cardBody.style("width"));
 
     // set the dimensions and margins of the graph
-    var margin = {top: 30, right: 10, bottom: 30, left: 10},
+    var margin = {top: 30, right: 10, bottom: 30, left: 15},
       width = currentWidth - margin.left - margin.right,
       height = 750 - margin.top - margin.bottom;
 
