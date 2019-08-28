@@ -582,7 +582,7 @@ def CIIPPredict():
 
 
         # get a full test set profile
-        print(training_data, test_data)
+
         test_profile_json = test_data.get_bioprofile()
 
         # I guess since a lot of these dont get used might be better to
@@ -604,6 +604,8 @@ def CIIPPredict():
         # align both axis
         test_matrix = test_matrix.loc[:, shared_assays]
         training_matrix = training_matrix.loc[:, shared_assays]
+
+
 
         trainin_activites = training_data.get_activities(use_cids=True)
         trainin_activites = trainin_activites[training_matrix.index]
@@ -658,8 +660,8 @@ def CIIPPredict():
             test_cmp_data['chemPred'] = float(trainin_activites[training_matrix.index[chem_nns[i]]].mean())
             data.append(test_cmp_data)
 
-
-        return render_template('CIIPPredictor.html',
+        print(data)
+        return render_template('CIIPPredictor.html', profiles=g.user.get_user_bioprofiles(),
                                testsets=g.user.get_user_datasets(set_type='test'),
                                data=data)
 
