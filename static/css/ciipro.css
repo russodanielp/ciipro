@@ -116,4 +116,10 @@ btm-padding {
     margin-bottom: 10em;
 }
 
+/* for flashed messages */
+.alert-info {
+    background-color: #6FA5FF;
+    border: none;
+    color: white;
+}
 
