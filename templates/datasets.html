@@ -31,6 +31,32 @@
           <div class="col-sm-6">
             <div class="card shadow p-3 mb-5 bg-white rounded">
               <div class="card-body">
+                <h5 class="card-title">Dataset overview</h5>
+                  <h6 id="this_ds">Dataset Name:  <span id="this_ds_text" class="prof-attr text-muted"></span></h6>
+                  <h6 id="num_acts">Num Actives:  <span id="num_act_text" class="prof-attr text-muted"></span></h6>
+                  <h6 id="num_inacts">Num Inactives:  <span id="num_inact_text" class="prof-attr text-muted"></span></h6>
+                  <h6 id="tot">Training or Test Set: <span id="tot_text" class="prof-attr text-muted"></span></h6>
+              </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-sm-6">
+            <div class="card shadow p-3 mb-5 bg-white rounded" id="dataset-card">
+              <div class="card-body">
+                <h5 class="card-title">Dataset compounds</h5>
+                  <div class="table-wrapper-scroll-y my-custom-scrollbar" id="compound-overview">
+                  </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-sm-6">
+            <div class="card shadow p-3 mb-5 bg-white rounded">
+              <div class="card-body">
+                <h5 class="card-title">Activity overview</h5>
                 <svg id="dataset-bar">
 
                 </svg>
@@ -39,7 +65,8 @@
           </div>
         </div>
 
-        <div class="row top-buffer">
+
+        <div class="row">
             <div class="col-sm-12">
                 <div class="card shadow p-3 mb-5 bg-white rounded">
                   <div class="card-body">
@@ -66,10 +93,10 @@
     </div>
     <script>
 
-    updateBar();
+    updateDataset();
     var e = document.getElementById("dataset-selection");
     e.addEventListener("change", function() {
-        updateBar();
+        updateDataset();
 
     });
 

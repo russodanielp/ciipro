@@ -804,7 +804,10 @@ def get_dataset_overview(dataset_name):
     data  = {
         'name': dataset_name,
         'actives': int(actives),
-        'inactives': int(inactives)
+        'inactives': int(inactives),
+        'set_type': ds.set_type,
+        'compounds': ds.compounds,
+        'activities': ds.activities
     }
     return json.dumps(data)
 

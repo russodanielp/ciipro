@@ -262,7 +262,7 @@ function tableUpdate() {
 
     table.append(head);
 
-    var tableBody = $('<tbody></tbody>')
+    var tableBody = $('<tbody></tbody>');
 
     table.append(tableBody);
 

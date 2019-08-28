@@ -55,13 +55,74 @@ function plotBar(actives, inactives) {
       .style("fill-opacity", 0.4).style("stroke-width", 3);
 }
 
-function updateBar() {
+function updateOverview(data) {
+
+    $("#this_ds_text").text(data.name);
+    $("#num_act_text").text(data.actives);
+    $("#num_inact_text").text(data.inactives);
+    $("#tot_text").text(data.set_type);
+
+}
+
+function updateCompoundTable(data) {
+
+    var tableScroll = $("#compound-overview").empty();
+    var table = $('<table></table>').addClass("table table-bordered table-striped mb-0");
+    tableScroll.append(table);
+
+    // table header
+
+        var head = $("                            <thead>\n" +
+        "                              <tr>\n" +
+        "                                  <th scope=\"row\" >Identifier</th>\n" +
+        "                                  <th scope=\"row\" >Activity</th>\n" +
+        "                              </tr>\n" +
+        "                            </thead>");
+
+    table.append(head);
+
+    var tableBody = $('<tbody></tbody>')
+    table.append(tableBody);
+
+    for (var i = 0; i < data.compounds.length; i++) {
+
+
+        var row = $("<tr></tr>");
+
+        tableBody.append(row);
+
+        var rowHead = $("<th scope=\"row\"></th>");
+
+        rowHead.text(data.compounds[i]);
+        row.append(rowHead);
+
+        var activity = $("<td></td>").text(data.activities[i].toString());
+
+        // color cell according to activity
+        if (data.activities[i] == 1) {
+            activity.css("background-color", "rgba(255, 0, 0, 0.3)");
+        } else {
+            activity.css("background-color", "rgba(0, 255, 0, 0.3)");
+        }
+        row.append(activity);
+
+    }
+
+    // set height to be same as the activity overview
+
+    tableScroll.attr("height")
+
+}
+
+function updateDataset() {
     var e = document.getElementById("dataset-selection");
     var currentProfile = e.options[e.selectedIndex].value;
 
     var queryUrl = $SCRIPT_ROOT + "get_dataset_overview/" + currentProfile;
     var dataset_data = JSON.parse(getResponseFromURL(queryUrl));
 
+    updateOverview(dataset_data);
     plotBar(dataset_data.actives, dataset_data.inactives);
+    updateCompoundTable(dataset_data);
 
 }
