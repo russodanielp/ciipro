@@ -334,7 +334,9 @@ def datasets():
     """ Displays datasets page with all available datasets in users compound folder. 
     
     """
-    return render_template('datasets.html', datasets=g.user.get_user_datasets(set_type='training'),
+    datasets = g.user.get_user_datasets(set_type='training') + g.user.get_user_datasets(set_type='test')
+
+    return render_template('datasets.html', datasets=datasets,
                            testsets=g.user.get_user_datasets(set_type='test'),
                           username=g.user.username)
                            
