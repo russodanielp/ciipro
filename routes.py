@@ -168,7 +168,7 @@ def logout():
     
     session.pop('compound_file', None)
     logout_user()
-    flash('Logged out successfully')
+    flash('Logged out successfully', 'info')
     return redirect(url_for('home'))
 
 def checkRecaptcha(response, secretkey):
