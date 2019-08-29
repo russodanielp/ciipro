@@ -165,8 +165,8 @@ function aidStackedBar(data){
       width = currentWidth - margin.left - margin.right,
       height = 750 - margin.top - margin.bottom;
 
-
-
+    console.log(currentWidth);
+    console.log(width);
 
     // append the svg object to the body of the page
     var svg = d3.select("#stackedBar")
@@ -224,6 +224,37 @@ function aidStackedBar(data){
         .attr("transform", "translate(" + margin.left + ",0)")
         .call(d3.axisLeft(y));
 
+    var legend = svg.append('g')
+    .attr('class', 'legend')
+    .attr('transform', 'translate(-5, -10)');
+
+    legend.selectAll('rect')
+        .data(["inactives", "actives"])
+        .enter()
+        .append('rect')
+        .attr('x', 0)
+        .attr('y', function(d, i){
+            return i * 18;
+        })
+        .attr('width', 12)
+        .attr('height', 12)
+        .attr('fill', function(d){
+            return z(d);
+        });
+
+    legend.selectAll('text')
+        .data(["Inactives", "Actives"])
+        .enter()
+        .append('text')
+        .text(function(d){
+            return d;
+        })
+        .attr('x', 18)
+        .attr('y', function(d, i){
+            return i * 18;
+        })
+        .attr('text-anchor', 'start')
+        .attr('alignment-baseline', 'hanging');
 
 
     function stackMin(serie) {
