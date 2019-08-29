@@ -3,6 +3,9 @@
 
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/predictor.css') }}">
+<div id="divLoading">
+
+</div>
 <div class="predictor-body">
     <form action="/CIIPPredict" method="post" enctype="multipart/form-data">
         <div class="row">
@@ -112,7 +115,7 @@
 
                         </div>
 
-                        <input type="submit" class="btn btn-primary btn-padding" value="Predict" name="Submit"/>
+                        <input type="submit" class="btn btn-primary btn-padding" value="Predict" name="Submit" onclick="loading()"/>
 
                         <div class="row">
                             <div class="col-sm-12">
