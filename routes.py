@@ -15,10 +15,12 @@ import json
 from BioSimLib import *
 #import urllib
 import zipfile
+
 import sqlalchemy.ext
 
 from datasets_io import write_ds_to_json
 import pandas as pd
+import numpy as np
 
 import ciipro_io
 
@@ -28,6 +30,7 @@ import datasets as ds
 import bioprofiles as bp
 import biosimilarity as biosim
 
+from ml import get_class_stats
 
 # These variables are configured in CIIProConfig
 # TODO: put all this in a true config file
@@ -660,10 +663,38 @@ def CIIPPredict():
             test_cmp_data['chemPred'] = float(trainin_activites[training_matrix.index[chem_nns[i]]].mean())
             data.append(test_cmp_data)
 
-        print(data)
+
+        biopreds = pd.Series([data_dic["bioPred"] for data_dic in data],
+                             index=[data_dic["cid"] for data_dic in data])
+
+        chempreds = pd.Series([data_dic["chemPred"] for data_dic in data],
+                             index=[data_dic["cid"] for data_dic in data])
+
+
+        hybridpreds = (biopreds + chempreds) / 2
+        hybridpreds = hybridpreds.apply(np.ceil)
+
+        y_test = test_data.get_activities(use_cids=True).loc[biopreds.index]
+
+        chem_stats = get_class_stats(chempreds, y_test)
+        bio_stats = get_class_stats(biopreds, y_test)
+        hybrid_stats = get_class_stats(hybridpreds, y_test)
+
+
+
+
+
+
+        stats = {
+            'chemStats': list(chem_stats.values()),
+            'bioStats': list(bio_stats.values()),
+            'hybridStats': list(hybrid_stats.values())
+
+        }
+        print(stats)
         return render_template('CIIPPredictor.html', profiles=g.user.get_user_bioprofiles(),
                                testsets=g.user.get_user_datasets(set_type='test'),
-                               data=data)
+                               data=data, stats=stats)
 
 
 
