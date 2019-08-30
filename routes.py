@@ -676,21 +676,15 @@ def CIIPPredict():
 
         y_test = test_data.get_activities(use_cids=True).loc[biopreds.index]
 
-        chem_stats = get_class_stats(chempreds, y_test)
-        bio_stats = get_class_stats(biopreds, y_test)
-        hybrid_stats = get_class_stats(hybridpreds, y_test)
+        chem_stats = [{"metric": metric, "value": round(value, 2)}
+                      for metric, value in get_class_stats(chempreds, y_test).items()]
+        bio_stats = [{"metric": metric, "value": round(value, 2)}
+                      for metric, value in get_class_stats(biopreds, y_test).items()]
+        hybrid_stats = [{"metric": metric, "value": round(value, 2)}
+                      for metric, value in get_class_stats(hybridpreds, y_test).items()]
 
 
-
-
-
-
-        stats = {
-            'chemStats': list(chem_stats.values()),
-            'bioStats': list(bio_stats.values()),
-            'hybridStats': list(hybrid_stats.values())
-
-        }
+        stats = [bio_stats, chem_stats, hybrid_stats]
         print(stats)
         return render_template('CIIPPredictor.html', profiles=g.user.get_user_bioprofiles(),
                                testsets=g.user.get_user_datasets(set_type='test'),

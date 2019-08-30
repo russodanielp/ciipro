@@ -194,8 +194,9 @@
 
             <div class="row">
                 <div class="col-sm-4">
-                    <div class="card shadow p-3 mb-5 bg-white rounded" id="dataset-card">
-                        <div class="card-body">
+                    <div class="card shadow p-3 mb-5 bg-white rounded">
+                        <div class="card-body" id="stats-body">
+                            <h5 class="card-title">Bio-prediction Statistics</h5>
                             <div id="bio-stats">
 
                             </div>
@@ -205,17 +206,25 @@
                 </div>
 
                 <div class="col-sm-4">
-                    <div class="card shadow p-3 mb-5 bg-white rounded" id="dataset-card">
+                    <div class="card shadow p-3 mb-5 bg-white rounded">
                         <div class="card-body">
-                            stats
+                            <h5 class="card-title">Chem-prediction Statistics</h5>
+                            <div id="chem-stats">
+
+                            </div>
+
                         </div>
                     </div>
                 </div>
 
                 <div class="col-sm-4">
-                    <div class="card shadow p-3 mb-5 bg-white rounded" id="dataset-card">
+                    <div class="card shadow p-3 mb-5 bg-white rounded">
                         <div class="card-body">
-                            stats
+                            <h5 class="card-title">Hybrid-prediction Statistics</h5>
+                            <div id="hybrid-stats">
+
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -240,23 +249,29 @@
     };
 
     {% if stats %}
-         var stats = {{ stats | tojson | safe}};
+        var stats = {{ stats | tojson | safe}};
+        var cardBody = d3.select("#stats-body");
+        var currentWidth = parseInt(cardBody.style("width"));
 
-         var bioStats = stats.bioStats;
-         var chemStats = stats.chemStats;
-         var hybridStats = stats.hybridStats;
-
-        var width = 300,
-            height = 300;
+        var width = currentWidth - 200,
+            height = currentWidth - 200;
         // Config for the Radar chart
         var config = {
             w: width,
             h: height,
-            maxValue: 100,
+            maxValue: 1,
             levels: 5,
             ExtraWidthX: 300
-        }
-        RadarChart.draw("#bio-stats", bioStats, config);
+        };
+
+        config.color = '#0505FF';
+        RadarChart.draw("#bio-stats", [stats[0]], config);
+
+        config.color = '#6FA5FF';
+        RadarChart.draw("#chem-stats", [stats[1]], config);
+
+        config.color = '#05056F';
+        RadarChart.draw("#hybrid-stats", [stats[2]], config);
 
 
     {% endif %}
