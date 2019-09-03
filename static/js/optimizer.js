@@ -219,7 +219,7 @@ function aidStackedBar(data){
         .attr("dx", "-.8em")
         .attr("dy", ".15em")
         .attr("transform", "rotate(-65)")
-        .style("font-size",  x.bandwidth);
+        .style("font-size",  x.bandwidth());
 
 
     svg.append("g")
@@ -372,10 +372,10 @@ function displayHeatmap() {
     var queryUrl = $SCRIPT_ROOT + "get_bioprofile/" + currentProfile;
     var profile_data = JSON.parse(getResponseFromURL(queryUrl));
 
-    var newWindow = window.open('', '', "height=750,width=750");
+    var newWindow = window.open('', '', "height=1000,width=1000");
     newWindowRoot = d3.select(newWindow.document.body)
-                    .attr("width","750")
-                    .attr("height","750")
+                    .attr("width","1000")
+                    .attr("height","1000")
                     .attr("margin","50px auto");
 
 

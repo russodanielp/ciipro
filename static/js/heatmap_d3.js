@@ -3,7 +3,7 @@ function plotHeatMap(root, data) {
 
 
     // set the dimensions and margins of the graph
-    var margin = {top: 30, right: 30, bottom: 30, left: 30},
+    var margin = {top: 30, right: 30, bottom: 30, left: 250},
       width = 750 - margin.left - margin.right,
       height = 750 - margin.top - margin.bottom;
 
@@ -32,6 +32,13 @@ function plotHeatMap(root, data) {
     svg.append("g")
       .attr("transform", "translate(0," + height + ")")
       .call(d3.axisBottom(x))
+        .selectAll("text")
+        .style("text-anchor", "end")
+        .attr("dx", "-.8em")
+        .attr("dy", ".15em")
+        .attr("transform", "rotate(-65)")
+        .style("font-size",  0);
+
 
     // Build X scales and axis:
     var y = d3.scaleBand()
@@ -39,12 +46,13 @@ function plotHeatMap(root, data) {
       .domain(cids)
       .padding(0.01);
     svg.append("g")
-      .call(d3.axisLeft(y));
+      .call(d3.axisLeft(y))
+      .style("font-size",  0);
 
     // Build color scale
     var myColor = d3.scaleOrdinal()
       .range(["blue", "white", "red"])
-      .domain([-1,0,1])
+      .domain([-1,0,1]);
 
     var dataPlot = data.cids.map(function(e, i) {
           return [e, data.aids[i], data.outcomes[i]];
