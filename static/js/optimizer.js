@@ -161,7 +161,7 @@ function aidStackedBar(data){
     currentWidth = parseInt(cardBody.style("width"));
 
     // set the dimensions and margins of the graph
-    var margin = {top: 30, right: 10, bottom: 30, left: 15},
+    var margin = {top: 30, right: 10, bottom: 30, left: 30},
       width = currentWidth - margin.left - margin.right,
       height = 750 - margin.top - margin.bottom;
 
@@ -218,12 +218,14 @@ function aidStackedBar(data){
         .style("text-anchor", "end")
         .attr("dx", "-.8em")
         .attr("dy", ".15em")
-        .attr("transform", "rotate(-65)");
+        .attr("transform", "rotate(-65)")
+        .style("font-size",  x.bandwidth);
 
 
     svg.append("g")
         .attr("transform", "translate(" + margin.left + ",0)")
-        .call(d3.axisLeft(y));
+        .call(d3.axisLeft(y))
+        .style("font-size", 18);
 
     var legend = svg.append('g')
     .attr('class', 'legend')

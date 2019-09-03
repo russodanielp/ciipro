@@ -69,7 +69,7 @@ function plotBar(actives, inactives) {
                     .attr("transform", "translate(" + margin.left + ",0)")
                     .call(d3.axisLeft(yScale))
                     .selectAll("text")
-                    .style("font-size", 18);;
+                    .style("font-size", 18);
 
     var xAxis = chart.append("g")
                     .attr("transform", "translate(0," + yScale(0) + ")")
