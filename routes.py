@@ -915,6 +915,21 @@ def delete_profile():
 
 
 @login_required
+@app.route('/delete_dataset', methods=['POST'])
+def delete_dataset():
+    """
+        a remove a specific bioprofile
+
+    """
+    json_data = request.get_json()
+
+    dataset_name = json_data['dataset_name']
+
+    dataset_path = os.path.join(g.user.get_user_folder('datasets'), '{}.json'.format(dataset_name))
+
+    os.remove(dataset_path)
+
+@login_required
 @app.route('/filter_profile', methods=['POST'])
 def filter_profile():
     """

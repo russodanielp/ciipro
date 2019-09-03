@@ -126,3 +126,34 @@ function updateDataset() {
     updateCompoundTable(dataset_data);
 
 }
+
+function deleteDataset() {
+    var e = document.getElementById("dataset-selection");
+    var currentDataset = e.options[e.selectedIndex].value;
+
+
+    data = {
+        dataset_name: currentDataset
+    }
+
+    postData('/delete_dataset', data);
+
+    location.reload();
+}
+
+function postData(url, data) {
+    // function that uses fetch model to send the current filters to the flask function
+
+
+    fetch(url, {
+
+            method: 'POST',
+
+            headers: {
+                'Content-type': 'application/json'
+            },
+
+            body: JSON.stringify(data)
+        }
+        )
+}
