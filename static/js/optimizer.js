@@ -184,8 +184,9 @@ function aidStackedBar(data){
 
     var x = d3.scaleBand()
         .domain(data.map(function(d) { return d.aid; }))
-        .rangeRound([margin.left, width - margin.right])
-        .padding(0.1);
+        .range([margin.left, width - margin.right])
+        .paddingInner(0.05);
+
 
     var y = d3.scaleLinear()
         .domain([d3.min(series, stackMin), d3.max(series, stackMax)])
