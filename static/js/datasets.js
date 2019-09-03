@@ -2,25 +2,35 @@ function plotBar(actives, inactives) {
     // bar plot that shows the active:inactive ratio
     // of a dataset
 
+
+
+    var cardBody = d3.select("#dataset-bar-body");
+    currentWidth = parseInt(cardBody.style("width"));
+
     var margin = {top: 20, right: 20, bottom: 30, left: 40};
-    var w = 300 - margin.left - margin.right;
-    var h = 300 - margin.top - margin.bottom;
+    var w = currentWidth - margin.left - margin.right;
+    var h = 400 - margin.top - margin.bottom;
 
-
-    var svg = d3.select("#dataset-bar").attr("height", 300)
-                .attr("width", 600);
+    var svg = d3.select("#dataset-bar")
+        .attr("width", w + margin.left + margin.right)
+        .attr("height", h + margin.top + margin.bottom);
 
     svg.selectAll('g').remove();
 
-    var chart = svg.append('g').attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    var chart = svg.append('g')
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    var xScale = d3.scaleBand()
+        .domain(['Actives', 'Inactives'])
+        .range([margin.left, w - margin.right])
+        .paddingInner(0.10)
+        .paddingOuter(0.30);
+
 
     var yScale = d3.scaleLinear().domain([0, Math.max(actives, inactives)+10]).range([h, 0]);
-    var xScale = d3.scaleBand().domain(['Actives', 'Inactives']).range([10, w]);
 
-    var yAxis = chart.append("g")
-                    .call(d3.axisLeft(yScale));
-    var xAxis = chart.append("g")
-                    .call(d3.axisTop(xScale));
+
+
 
 
     chart.selectAll("act")
@@ -53,6 +63,21 @@ function plotBar(actives, inactives) {
       .style("fill", "green")
       .style("stroke", "black")
       .style("fill-opacity", 0.4).style("stroke-width", 3);
+
+
+    var yAxis = chart.append("g")
+                    .attr("transform", "translate(" + margin.left + ",0)")
+                    .call(d3.axisLeft(yScale))
+                    .selectAll("text")
+                    .style("font-size", 18);;
+
+    var xAxis = chart.append("g")
+                    .attr("transform", "translate(0," + yScale(0) + ")")
+                    .call(d3.axisBottom(xScale))
+                    .selectAll("text")
+                    .style("font-size", 30);
+
+
 }
 
 function updateOverview(data) {
