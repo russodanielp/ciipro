@@ -32,7 +32,7 @@ import biosimilarity as biosim
 
 import fpprofiles as fp
 
-from cluster import in_vitro_in_vivo_correlations
+from cluster import in_vitro_fingerprint_correlations
 
 from ml import get_class_stats
 
@@ -488,7 +488,7 @@ def CIIPro_Cluster():
         bioprofile = training_profile.to_frame()
         fps = training_set.get_pubchem_fps().loc[bioprofile.index]
 
-        correlations = in_vitro_in_vivo_correlations(bioprofile, fps, threshold=0.05, binarize=True)
+        correlations = in_vitro_fingerprint_correlations(bioprofile, fps, threshold=0.05, binarize=True)
 
         fp_profile = fp.FPprofile.from_dict(correlations)
 
