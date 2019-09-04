@@ -1,0 +1,79 @@
+{% extends "template.html" %}
+{% block content %}
+
+<script src="../static/js/requests.js"></script>
+<script src="../static/js/cluster.js"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/cluster.css') }}">
+
+
+<script type=text/javascript>
+  $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+</script>
+
+<div class="optimizer-body" >
+
+    <form action="/CIIPro_Cluster" method="post" enctype="multipart/form-data">
+        <div class="row">
+          <div class="col-sm-6">
+            <div class="card shadow p-3 mb-5 bg-white rounded" id="dataset-card">
+              <div class="card-body">
+                <h5 class="card-title">Available profiles</h5>
+                  {% if not profiles %}
+                      <p class="card-text">No profiles available.</p>
+                  {% endif %}
+                  {% if profiles %}
+                    <div class="form-group">
+                      <label for="sel1">Select profile:</label>
+                      <select class="form-control" id="profile-selection">
+                        {% for profile in profiles %}
+                            <option value="{{ profile }}"> {{ profile }}</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                 {%  endif %}
+                <button onclick="deleteProfile()" class="btn btn-danger btn-padding">Delete profile</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-sm-6">
+            <div class="card shadow p-3 mb-5 bg-white rounded">
+              <div class="card-body">
+                <h5 class="card-title">Profile overview</h5>
+                  <h6 id="ts_used">Training Set Used:  <span id="this_ts" class="prof-attr text-muted"></span></h6>
+                  <h6 id="num_cmps">Num Compounds:  <span id="cmps" class="prof-attr text-muted"></span></h6>
+                  <h6 id="num_aids">Num Assays:  <span id="aids" class="prof-attr text-muted"></span></h6>
+                  <h6 id="total_acts">Total Active Responses: <span id="tot_acts" class="prof-attr text-muted"></span></h6>
+                  <h6 id="total_inacts">Total Inactive Responses: <span id="tot_inacts" class="prof-attr text-muted"></span></h6>
+
+              </div>
+            </div>
+          </div>
+
+        </div>
+    <form>
+</div>
+<script>
+
+    refreshProfileClusterPage();
+
+    var e = document.getElementById("profile-selection");
+    e.addEventListener("change", function() {
+        refreshProfileClusterPage();
+
+    });
+
+
+
+
+
+</script>
+
+{% endblock %}
+
+
+
+
+
+
+

@@ -463,6 +463,17 @@ def CIIPro_Optimizer():
 def allowed_file(filename): #method that checks to see if upload file is allowed
     return '.' in filename and filename.rsplit('.', 1)[1] in CIIProConfig.ALLOWED_EXTENSIONS
 
+
+@app.route('/CIIPro_Cluster', methods=['GET', 'POST'])
+@login_required
+def CIIPro_Cluster():
+    """
+    """
+
+    if request.method == 'GET':
+        return render_template('CIIProCluster.html', profiles=g.user.get_user_bioprofiles())
+
+
 @app.route('/optimizeassays', methods=['POST'])
 @login_required
 def removeassays():
