@@ -30,6 +30,10 @@ import datasets as ds
 import bioprofiles as bp
 import biosimilarity as biosim
 
+import fpprofiles as fp
+
+from cluster import in_vitro_in_vivo_correlations
+
 from ml import get_class_stats
 
 # These variables are configured in CIIProConfig
@@ -472,7 +476,25 @@ def CIIPro_Cluster():
 
     if request.method == 'GET':
         return render_template('CIIProCluster.html', profiles=g.user.get_user_bioprofiles())
+    else:
 
+        profile_filename = request.form['profile_filename']
+
+        training_profile = g.user.load_bioprofile(profile_filename)
+
+        # load the associated training set
+        training_set = g.user.load_dataset(training_profile.meta['training_set'])
+
+        bioprofile = training_profile.to_frame()
+        fps = training_set.get_pubchem_fps().loc[bioprofile.index]
+
+        correlations = in_vitro_in_vivo_correlations(bioprofile, fps, threshold=0.05, binarize=True)
+
+        fp_profile = fp.FPprofile.from_dict(correlations)
+
+        print(fp_profile)
+
+        return render_template('CIIProCluster.html', profiles=g.user.get_user_bioprofiles())
 
 @app.route('/optimizeassays', methods=['POST'])
 @login_required

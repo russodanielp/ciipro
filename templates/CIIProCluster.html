@@ -10,6 +10,10 @@
   $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
 </script>
 
+<div id="divLoading">
+
+</div>
+
 <div class="optimizer-body" >
 
     <form action="/CIIPro_Cluster" method="post" enctype="multipart/form-data">
@@ -24,14 +28,15 @@
                   {% if profiles %}
                     <div class="form-group">
                       <label for="sel1">Select profile:</label>
-                      <select class="form-control" id="profile-selection">
+                      <select class="form-control" name="profile_filename" id="profile-selection">
                         {% for profile in profiles %}
                             <option value="{{ profile }}"> {{ profile }}</option>
                         {% endfor %}
                       </select>
                     </div>
                  {%  endif %}
-                <button onclick="deleteProfile()" class="btn btn-danger btn-padding">Delete profile</button>
+                <input type="submit" class="btn btn-primary btn-padding"
+                       value="Cluster profile" onclick="loading()"/>
               </div>
             </div>
           </div>
@@ -51,7 +56,7 @@
           </div>
 
         </div>
-    <form>
+    </form>
 </div>
 <script>
 
