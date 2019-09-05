@@ -16,15 +16,16 @@ To request a feature or report a bug, please use [Issue Tracker](https://github.
 
 
 
-### Contributing ###
+### Installing the CIIPro python environment ###
 
-If you are interested in contributing to CIIPro you can clone the repository and configure the Flask app to your local machine.  
-Contributions are welcome in the form of pull requests.  Package and dependency management is done through [conda](https://anaconda.org/).
-After installing conda the CIIPro virtual environment can be created using the `environment.yml` file.  In the 
- `environment.yml` file directory use the command:
+Creating a clone of the correct CIIPro environment is done via Anaconda.  Currently, issuing the following 
+command on a linux OS seems to work:
+
  ```
- conda env create --force
+ conda env update --file environment-linux.yml
  ```
+
+This command will install using the environment-linux.yml a new python environment called ciipro-env-7-17-2019 .
 
 ### Color Codes ###
 
