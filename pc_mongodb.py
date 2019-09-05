@@ -5,9 +5,13 @@ from pymongo.collection import Collection
 
 from ciipro_config import CIIProConfig
 
-
 client = pymongo.MongoClient(CIIProConfig.DB_SITE, 27017)
-client.test.authenticate(CIIProConfig.DB_USERNAME, CIIProConfig.DB_PASSWORD, mechanism='SCRAM-SHA-1')
+
+# if in development mode theres no password/usernmane
+if (CIIProConfig.DB_USERNAME and CIIProConfig.DB_PASSWORD):
+    client.test.authenticate(CIIProConfig.DB_USERNAME, CIIProConfig.DB_PASSWORD, mechanism='SCRAM-SHA-1')
+
+
 
 # connect to db, then each collection individually
 pubchem = client.pubchem
