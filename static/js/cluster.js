@@ -16,7 +16,6 @@ function refreshProfileClusterPage() {
 
     var queryUrl = $SCRIPT_ROOT + "get_bioprofile/" + currentProfile;
     var profile_data = JSON.parse(getResponseFromURL(queryUrl));
-    console.log(queryUrl);
 
     var tsElement = document.getElementById('this_ts');
     tsElement.innerHTML = profile_data.meta.training_set;

@@ -391,7 +391,7 @@ def uploaddataset():
 
         # I think we have to save this in order to use it, not sure if we car read it otherwise
         file.save(user_uploaded_file)
-
+        print(user_uploaded_file)
         # TODO: Need to write some checks to make sure everything in the uploaded dataset is good
         # TODO: Things like all activies are there, columns match, etc
         # TODO: the following type conversions are necessary for JSON serialization
