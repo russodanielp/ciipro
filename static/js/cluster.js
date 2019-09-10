@@ -12,10 +12,9 @@ function refreshProfileClusterPage() {
     // replaces all the profile data on the optimizer page
     // and also replorts the heatmap
 
-    var e = document.getElementById("profile-selection");
-    var currentProfile = e.options[e.selectedIndex].value;
+    var currentProfile = $("#profile-selection").find(":selected").text().trim();
 
-    var queryUrl = $SCRIPT_ROOT + "/get_bioprofile/" + currentProfile;
+    var queryUrl = $SCRIPT_ROOT + "get_bioprofile/" + currentProfile;
     var profile_data = JSON.parse(getResponseFromURL(queryUrl));
     console.log(queryUrl);
 
