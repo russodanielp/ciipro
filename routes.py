@@ -131,7 +131,6 @@ class User(db.Model):
     def load_adj_matrix(self, clustering_name):
         adj_json_file = os.path.join(self.get_user_folder('fp_profiles'),
                                      '{}_adj_matrix.json'.format(clustering_name))
-        print(adj_json_file)
         return fp.AdjMatrix.from_json(adj_json_file)
 
 
@@ -1016,7 +1015,6 @@ def filter_profile():
     """
     json_data = request.get_json()
 
-    print(json_data)
     bioprofile = g.user.load_bioprofile(json_data['profile_name'])
 
     assays_to_drop = []
