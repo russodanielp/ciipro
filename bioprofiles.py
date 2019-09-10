@@ -46,7 +46,7 @@ class Bioprofile:
 
 
         with open(os.path.join(write_dir, '{}.json'.format(self.name)), 'w') as outfile:
-            json.dump(json_data, outfile)
+            json.dump(json_data, outfile, indent=4)
 
 
     def to_frame(self):

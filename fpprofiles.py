@@ -3,6 +3,7 @@
 
 import json, os
 import pandas as pd
+from sklearn.metrics.pairwise import pairwise_distances
 
 
 class FPprofile:
@@ -42,7 +43,7 @@ class FPprofile:
 
 
         with open(os.path.join(write_dir, '{}.json'.format(self.name)), 'w') as outfile:
-            json.dump(json_data, outfile)
+            json.dump(json_data, outfile, indent=4)
 
 
     def to_frame(self):
@@ -62,6 +63,28 @@ class FPprofile:
         profile.columns = list(map(int, profile.columns))
         return profile
 
+    def get_adjacency(self, metric='jaccard'):
+        X = self.to_frame()
+
+        connectivity_matrix = pd.DataFrame(pairwise_distances(X, metric=metric), index=X.index, columns=X.index)
+
+        nodes = []
+        for id, aid in enumerate(X.index):
+            nodes.append({"id": int(aid), "name": int(aid)})
+
+        links = []
+
+        for aid_one in connectivity_matrix.index:
+            for aid_two in connectivity_matrix.index:
+                data = {"source": int(aid_one),
+                        "target": int(aid_two),
+                        "weight": float(connectivity_matrix.loc[aid_one, aid_two])}
+                links.append(data)
+        return AdjMatrix(nodes, links, self.name)
+
+
+
+
     @classmethod
     def from_dict(cls, dictionary):
 
@@ -71,16 +94,36 @@ class FPprofile:
 
         for aid, fp_dict in dictionary.items():
             for fp, p_value in fp_dict.items():
-                aids.append(aids)
-                fps.append(fp)
-                p_values.append(p_value)
+                aids.append(int(aid))
+                fps.append(int(fp))
+                p_values.append(float(p_value))
 
 
-        return cls('name',
+        return cls(None,
                    aids,
                    fps,
                    p_values,
                    None)
+
+
+
+class AdjMatrix:
+
+    def __init__(self, nodes, links, profile_used):
+
+        self.nodes = nodes
+        self.links = links
+        self.profile_used = profile_used
+
+
+    def to_json(self, write_dir):
+        json_data = {
+            'nodes': self.nodes,
+            'links': self.links,
+            'profile_used': self.profile_used,
+        }
+        with open(os.path.join(write_dir, '{}.json'.format(self.profile_used)), 'w') as outfile:
+            json.dump(json_data, outfile, indent=4)
 
 if __name__ == '__main__':
     pass

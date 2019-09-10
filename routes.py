@@ -479,6 +479,8 @@ def CIIPro_Cluster():
     else:
 
         profile_filename = request.form['profile_filename']
+        clustering_filename = request.form['clustering_filename']
+        threshold = 0.05
 
         training_profile = g.user.load_bioprofile(profile_filename)
 
@@ -488,11 +490,26 @@ def CIIPro_Cluster():
         bioprofile = training_profile.to_frame()
         fps = training_set.get_pubchem_fps().loc[bioprofile.index]
 
-        correlations = in_vitro_fingerprint_correlations(bioprofile, fps, threshold=0.05, binarize=True)
+        correlations = in_vitro_fingerprint_correlations(bioprofile, fps, threshold=threshold, binarize=True)
 
         fp_profile = fp.FPprofile.from_dict(correlations)
+        fp_profile.name = clustering_filename
 
-        print(fp_profile)
+
+        meta = {
+            'profile_used': training_profile.name,
+            'threshold': threshold
+        }
+
+        fp_profile.meta = meta
+
+        fp_profile.to_json(g.user.get_user_folder('fp_profiles'))
+
+        fp_frame = fp_profile.to_frame()
+
+        adj_matrix = fp_profile.get_adjacency()
+
+        adj_matrix.to_json(g.user.get_user_folder('fp_profiles'))
 
         return render_template('CIIProCluster.html', profiles=g.user.get_user_bioprofiles())
 

@@ -47,7 +47,7 @@ def write_ds_to_json(identifiers, activities, to_dir, name, identifier_type, set
     to_dir  = os.path.join(to_dir, '{}.json'.format(name))
 
     with open(to_dir, 'w') as output_file:
-        json.dump(dataset, output_file)
+        json.dump(dataset, output_file, indent=4)
 
 def load_json(dir):
     """ simply loads a json dataset """

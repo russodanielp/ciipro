@@ -44,6 +44,6 @@ def in_vitro_fingerprint_correlations(bioprofile, fps, threshold=1.01, binarize=
                     if binarize:
                         aid_fp_dict[aid][fp] = 1
                     else:
-                        aid_fp_dict[aid][fp] = pvalue
+                        aid_fp_dict[aid][fp] = float(pvalue)
 
     return aid_fp_dict
