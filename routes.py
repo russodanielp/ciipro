@@ -124,6 +124,14 @@ class User(db.Model):
             bp_json_file = os.path.join(self.get_user_folder('profiles'), '{}.json'.format(bp_name))
 
             return bp.Bioprofile.from_json(bp_json_file)
+
+    def load_adj_matrix(self, clustering_name):
+        adj_json_file = os.path.join(self.get_user_folder('fp_profiles'),
+                                     '{}_adj_matrix.json'.format(clustering_name))
+        print(adj_json_file)
+        return fp.AdjMatrix.from_json(adj_json_file)
+
+
     
 db.create_all()
 @login_manager.user_loader
@@ -504,8 +512,6 @@ def CIIPro_Cluster():
         fp_profile.meta = meta
 
         fp_profile.to_json(g.user.get_user_folder('fp_profiles'))
-
-        fp_frame = fp_profile.to_frame()
 
         adj_matrix = fp_profile.get_adjacency()
 
@@ -978,6 +984,22 @@ def delete_dataset():
     dataset_path = os.path.join(g.user.get_user_folder('datasets'), '{}.json'.format(dataset_name))
 
     os.remove(dataset_path)
+
+
+@login_required
+@app.route('/get_adj_matrix/<clustering_name>')
+def get_adj_matrix(clustering_name):
+
+    adj_matrix = g.user.load_adj_matrix(clustering_name)
+
+    data  = {
+        'links': adj_matrix.links,
+        'nodes': adj_matrix.nodes,
+        'profile_used': adj_matrix.profile_used
+    }
+
+
+    return json.dumps(data)
 
 @login_required
 @app.route('/filter_profile', methods=['POST'])

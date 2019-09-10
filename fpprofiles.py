@@ -83,7 +83,17 @@ class FPprofile:
         return AdjMatrix(nodes, links, self.name)
 
 
+    @classmethod
+    def from_json(cls, json_filename):
+        with open(json_filename) as json_file:
+            json_data = json.load(json_file)
 
+        return cls(json_data['name'],
+                   json_data['aids'],
+                   json_data['fps'],
+                   json_data['p_values'],
+                   json_data['meta']
+                   )
 
     @classmethod
     def from_dict(cls, dictionary):
@@ -122,8 +132,18 @@ class AdjMatrix:
             'links': self.links,
             'profile_used': self.profile_used,
         }
-        with open(os.path.join(write_dir, '{}.json'.format(self.profile_used)), 'w') as outfile:
+        with open(os.path.join(write_dir, '{}_adj_matrix.json'.format(self.profile_used)), 'w') as outfile:
             json.dump(json_data, outfile, indent=4)
+
+    @classmethod
+    def from_json(cls, json_filename):
+        with open(json_filename) as json_file:
+            json_data = json.load(json_file)
+
+        return cls(json_data['nodes'],
+                   json_data['links'],
+                   json_data['profile_used'])
+
 
 if __name__ == '__main__':
     pass
