@@ -101,10 +101,13 @@ class User(db.Model):
         """ returns the datasets for a users """
         return ds_io.get_datasets_names_for_user(self.get_user_folder('datasets'), set_type=set_type)
 
-    def get_user_bioprofiles(self, set_type="training"):
+    def get_user_bioprofiles(self):
         """ returns profiles for a user """
         return ciipro_io.get_profiles_names_for_user(self.get_user_folder('profiles'))
 
+    def get_user_fp_profiles(self):
+        """ returns profiles for a user """
+        return ciipro_io.get_profiles_names_for_user(self.get_user_folder('fp_profiles'))
 
     def load_dataset(self, ds_name):
 
@@ -483,11 +486,12 @@ def CIIPro_Cluster():
     """
 
     if request.method == 'GET':
-        return render_template('CIIProCluster.html', profiles=g.user.get_user_bioprofiles())
+        return render_template('CIIProCluster.html', profiles=g.user.get_user_bioprofiles(),
+                                                    clusters=g.user.get_user_fp_profiles())
     else:
 
-        profile_filename = request.form['profile_filename']
-        clustering_filename = request.form['clustering_filename']
+        profile_filename = request.form['profile_filename'].strip()
+        clustering_filename = request.form['clustering_filename'].strip()
         threshold = 0.05
 
         training_profile = g.user.load_bioprofile(profile_filename)
@@ -517,7 +521,8 @@ def CIIPro_Cluster():
 
         adj_matrix.to_json(g.user.get_user_folder('fp_profiles'))
 
-        return render_template('CIIProCluster.html', profiles=g.user.get_user_bioprofiles())
+        return render_template('CIIProCluster.html', profiles=g.user.get_user_bioprofiles(),
+                               clusters=g.user.get_user_fp_profiles())
 
 @app.route('/optimizeassays', methods=['POST'])
 @login_required
@@ -558,7 +563,7 @@ def CIIProfile():
         ds_name = str(request.form['compound_filename'])
         ds = g.user.load_dataset(ds_name)
         min_actives = int(request.form['noOfActives'])
-        profile_name = str(request.form['profile_filename'])
+        profile_name = str(request.form['profile_filename']).strip()
 
         bioprofile_json = ds.get_bioprofile(min_actives=min_actives)
 
