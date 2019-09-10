@@ -18,7 +18,7 @@
               {% if datasets %}
                 <div class="form-group">
                   <label for="sel1">Select dataset:</label>
-                  <select class="form-control" id="sel1" name="compound_filename">
+                  <select class="form-control" id="compound_filename" name="compound_filename">
                     {% for dataset in datasets %}
                         <option value="{{ dataset }}"> {{ dataset }}</option>
                     {% endfor %}
@@ -43,7 +43,8 @@
 
               <div class="form-group">
                   <label for="profile_filename">Give a name to the profile:</label>
-                  <input style="margin-left: 20px" type="text" id="profile_filename" name="profile_filename" />
+                  <input style="margin-left: 20px"
+                         size=60 type="text" id="profile_filename" name="profile_filename" />
               </div>
 
 
@@ -67,14 +68,20 @@
 
     // add event listenter to selected
 
-    document.getElementById("profile_filename").value = "profile_" + m + "_" + d + "_" + y;
+    selector = $("#compound_filename");
 
+    function changeProfileName() {
+        currentProfile = selector.find(":selected").text();
+        clusteringFilename = $("#profile_filename");
+        clusteringFilename.val(currentProfile + "_profile_" + m + "_" + d + "_" + y);
 
-    var e = document.getElementById("profile-selection");
-        e.addEventListener("change", function() {
-            refreshProfile();
-            clearFilters();
+    };
+
+    changeProfileName();
+    selector.on("change", function() {
+            changeProfileName();
         });
+
 
 
     </script>

@@ -14,7 +14,7 @@
 
 </div>
 
-<div class="optimizer-body" >
+<div class="cluster-body" >
 
     <form action="/CIIPro_Cluster" method="post" enctype="multipart/form-data">
         <div class="row">
@@ -35,6 +35,12 @@
                       </select>
                     </div>
                  {%  endif %}
+                <div class="form-group">
+                  <label for="clustering_filename">Give a name to the clustering:</label>
+                  <input style="margin-left: 20px" type="text"
+                         size=30 id="clustering_filename" name="clustering_filename" />
+                </div>
+
                 <input type="submit" class="btn btn-primary btn-padding"
                        value="Cluster profile" onclick="loading()"/>
               </div>
@@ -60,12 +66,23 @@
 </div>
 <script>
 
+
     refreshProfileClusterPage();
 
-    var e = document.getElementById("profile-selection");
-    e.addEventListener("change", function() {
-        refreshProfileClusterPage();
+    selector = $("#profile-selection");
 
+
+    function changeClusteringName() {
+        currentProfile = selector.find(":selected").text();
+        clusteringFilename = $("#clustering_filename");
+        clusteringFilename.val(currentProfile + "_clustering");
+
+    };
+
+    changeClusteringName();
+    selector.on("change", function() {
+        refreshProfileClusterPage();
+        changeClusteringName();
     });
 
 
