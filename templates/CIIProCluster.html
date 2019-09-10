@@ -62,32 +62,61 @@
           </div>
 
         </div>
+
+        <div class="row">
+          <div class="col-sm-6">
+            <div class="card shadow p-3 mb-5 bg-white rounded" id="dataset-card">
+              <div class="card-body">
+                <h5 class="card-title">Available bioclusters</h5>
+                  {% if not clusters %}
+                      <p class="card-text">No clusters available.</p>
+                  {% endif %}
+                  {% if clusters %}
+                    <div class="form-group">
+                      <label for="sel1">Select cluster:</label>
+                      <select class="form-control" name="clustering" id="cluster-selection">
+                        {% for cluster in clusters %}
+                            <option value="{{ cluster }}"> {{ cluster }}</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                 {%  endif %}
+
+
+              </div>
+            </div>
+          </div>
+
+          <div class="col-sm-6">
+            <div class="card shadow p-3 mb-5 bg-white rounded">
+              <div class="card-body" id="cluster-graph-card-body">
+                <div id="cluster-graph">
+
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
     </form>
 </div>
 <script>
 
+    profileSelector = $("#profile-selection");
 
     refreshProfileClusterPage();
-
-    selector = $("#profile-selection");
-
-
-    function changeClusteringName() {
-        currentProfile = selector.find(":selected").text();
-        clusteringFilename = $("#clustering_filename");
-        clusteringFilename.val(currentProfile + "_clustering");
-
-    };
-
     changeClusteringName();
-    selector.on("change", function() {
+    plotGraph();
+
+    profileSelector.on("change", function() {
         refreshProfileClusterPage();
         changeClusteringName();
     });
 
-
-
-
+    $("#cluster-selection").on("change", function() {
+        plotGraph();
+    });
 
 </script>
 

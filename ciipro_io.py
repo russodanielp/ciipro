@@ -30,7 +30,10 @@ def load_json(dir):
 
 
 def get_profiles_names_for_user(profiles_dir: str):
-    all_jsons = glob.glob(os.path.join(profiles_dir, '*.json'))
+
+    # TODO: find a better way to not get adj_matrix file
+    all_jsons = [json_file for json_file in glob.glob(os.path.join(profiles_dir, '*.json'))
+                 if 'adj_matrix' not in json_file]
     names = []
 
     for json_file in all_jsons:

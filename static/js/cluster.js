@@ -1,3 +1,12 @@
+function changeClusteringName() {
+    selector = $("#profile-selection");
+    currentProfile = selector.find(":selected").text().trim();
+    clusteringFilename = $("#clustering_filename");
+    clusteringFilename.val(currentProfile + "_clustering");
+
+};
+
+
 function refreshProfileClusterPage() {
 
     // replaces all the profile data on the optimizer page
@@ -28,10 +37,16 @@ function refreshProfileClusterPage() {
 }
 
 function networkGraph (graph) {
+
+    d3.select("#cluster-graph").select("svg").remove();
+    var cardBody = d3.select("#cluster-graph-card-body");
+
     var body = d3.select("#cluster-graph"),
-        width = +body.attr("width"),
-        height = +body.attr("width");
-    console.log(width)
+        width = parseInt(cardBody.style("width")),
+        height = parseInt(cardBody.style("width"));
+
+    console.log(width);
+
     var svg = body.append("svg");
 
     svg.attr("width", width);
@@ -111,4 +126,15 @@ function networkGraph (graph) {
       if (!d3.event.active) simulation.alphaTarget(0);
       simulation.unfix(d);
     }
+}
+
+function plotGraph() {
+    currentClustering = $("#cluster-selection").find(":selected").text().trim();
+    console.log(currentClustering)
+
+
+    var queryUrl = $SCRIPT_ROOT + "get_adj_matrix/" + currentClustering;
+    var graph = JSON.parse(getResponseFromURL(queryUrl));
+
+    networkGraph(graph);
 }
