@@ -65,7 +65,7 @@ class FPprofile:
         profile.columns = list(map(int, profile.columns))
         return profile
 
-    def get_adjacency(self, metric='jaccard', min_distance=0.25, n_clusters=5):
+    def get_adjacency(self, metric='jaccard', min_distance=0.75, n_clusters=5):
         """
         calculates an adjacency matrix from fingerprint profile
 
