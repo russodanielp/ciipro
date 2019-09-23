@@ -4,6 +4,8 @@
 import json, os
 import pandas as pd
 from sklearn.metrics.pairwise import pairwise_distances
+from sklearn.cluster import AgglomerativeClustering
+
 
 
 class FPprofile:
@@ -63,23 +65,36 @@ class FPprofile:
         profile.columns = list(map(int, profile.columns))
         return profile
 
-    def get_adjacency(self, metric='jaccard'):
+    def get_adjacency(self, metric='jaccard', min_distance=0.25, n_clusters=5):
+        """
+        calculates an adjacency matrix from fingerprint profile
+
+        :param metric: metric to use to calculate distance
+        :param min_distance: minumum distance to make a connection between two nodes
+        :return:
+        """
         X = self.to_frame()
 
         connectivity_matrix = pd.DataFrame(pairwise_distances(X, metric=metric), index=X.index, columns=X.index)
 
+        cluster = AgglomerativeClustering(n_clusters=n_clusters, affinity='precomputed', linkage='average')
+
+        cluster.fit(connectivity_matrix)
+
         nodes = []
-        for id, aid in enumerate(X.index):
-            nodes.append({"id": int(aid), "name": int(aid)})
+        for idx, aid in enumerate(X.index):
+            nodes.append({"id": int(aid), "name": int(aid), "class": int(cluster.labels_[idx])})
 
         links = []
 
         for aid_one in connectivity_matrix.index:
             for aid_two in connectivity_matrix.index:
-                data = {"source": int(aid_one),
-                        "target": int(aid_two),
-                        "weight": float(connectivity_matrix.loc[aid_one, aid_two])}
-                links.append(data)
+
+                if (connectivity_matrix.loc[aid_one, aid_two] <= min_distance):
+                    data = {"source": int(aid_one),
+                            "target": int(aid_two),
+                            "weight": float(connectivity_matrix.loc[aid_one, aid_two])}
+                    links.append(data)
         return AdjMatrix(nodes, links, self.name)
 
 

@@ -1,7 +1,7 @@
 from scipy.stats import fisher_exact
 from collections import defaultdict
 
-def in_vitro_fingerprint_correlations(bioprofile, fps, threshold=1.01, binarize=False):
+def in_vitro_fingerprint_correlations(bioprofile, fps, threshold=0.05, binarize=False):
     """ uses fishers exact test to find the correlations between every
      fingerprint in fps to every bioassay in bioprofile_matrix """
     aid_fp_dict = defaultdict(dict)

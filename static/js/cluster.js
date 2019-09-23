@@ -6,11 +6,14 @@ function changeClusteringName() {
 
 };
 
+function updateMaxNoClusters(maxNumber) {
+   $("#n_clusters").attr("max", maxNumber);
+};
+
 
 function refreshProfileClusterPage() {
 
-    // replaces all the profile data on the optimizer page
-    // and also replorts the heatmap
+    // replaces all the profile data on the cluster page
 
     var currentProfile = $("#profile-selection").find(":selected").text().trim();
 
@@ -32,6 +35,7 @@ function refreshProfileClusterPage() {
     var tsElement = document.getElementById('tot_inacts');
     tsElement.innerHTML = profile_data.meta.num_total_inactives;
 
+    updateMaxNoClusters(profile_data.meta.num_aids);
 }
 
 function networkGraph (graph) {
@@ -41,9 +45,11 @@ function networkGraph (graph) {
 
     var body = d3.select("#cluster-graph"),
         width = parseInt(cardBody.style("width")),
-        height = parseInt(cardBody.style("width"));
+        height = parseInt(cardBody.style("width")),
+        radius = 6;
 
-    console.log(width);
+    // cluster colors
+    var fill = d3.scaleOrdinal(d3.schemeCategory20);
 
     var svg = body.append("svg");
 
@@ -51,8 +57,10 @@ function networkGraph (graph) {
     svg.attr("height", height);
 
     var simulation = d3.forceSimulation()
-        .force("link", d3.forceLink().id(function(d) { return d.id; }))
-        .force("charge", d3.forceManyBody().strength(-400))
+        .force("link", d3.forceLink().id(function(d) { return d.id; })
+                                     .distance(function(d) { return 100; })
+                                     .strength(function(d) { return 1-d.weight; }))
+        .force("charge", d3.forceManyBody())
         .force("center", d3.forceCenter(width / 2, height / 2));
 
 
@@ -68,7 +76,10 @@ function networkGraph (graph) {
       .selectAll("circle")
                 .data(graph.nodes)
       .enter().append("circle")
-              .attr("r", 6)
+              .attr("r", radius)
+              .style("fill", function(d) { return fill(d.class); })
+             .style("stroke", "#969696")
+             .style("stroke-width", "1px")
               .call(d3.drag()
                   .on("start", dragstarted)
                   .on("drag", dragged)
@@ -97,12 +108,8 @@ function networkGraph (graph) {
             .attr("y2", function(d) { return d.target.y; });
 
         node
-             .attr("r", 20)
-             .style("fill", "rgba(0, 128, 256, 0.5)")
-             .style("stroke", "#969696")
-             .style("stroke-width", "1px")
-             .attr("cx", function (d) { return d.x+6; })
-             .attr("cy", function(d) { return d.y-6; });
+             .attr("cx", function (d) { return d.x = Math.max(radius, Math.min(width - radius, d.x)); })
+             .attr("cy",  function(d) { return d.y = Math.max(radius, Math.min(height - radius, d.y)); });
 
         label
                 .attr("x", function(d) { return d.x; })
@@ -111,19 +118,22 @@ function networkGraph (graph) {
       }
 
 
-    function dragstarted(d) {
-      if (!d3.event.active) simulation.alphaTarget(0.3).restart()
-      simulation.fix(d);
-    }
+        function dragstarted(d) {
+          if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+          d.fx = d.x;
+          d.fy = d.y;
+        }
 
-    function dragged(d) {
-      simulation.fix(d, d3.event.x, d3.event.y);
-    }
+        function dragged(d) {
+          d.fx = d3.event.x;
+          d.fy = d3.event.y;
+        }
 
-    function dragended(d) {
-      if (!d3.event.active) simulation.alphaTarget(0);
-      simulation.unfix(d);
-    }
+        function dragended(d) {
+          if (!d3.event.active) simulation.alphaTarget(0);
+          d.fx = null;
+          d.fy = null;
+        }
 }
 
 function plotGraph() {
