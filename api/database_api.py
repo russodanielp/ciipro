@@ -84,5 +84,6 @@ def get_t_similar(smiles, threshold):
                     record_to_send['activities'][db] = db_results
 
             similar_mols.append(record_to_send)
+    similar_mols = sorted(similar_mols, key=lambda mol: mol['similarity'], reverse=True)
     return jsonify(similar_mols)
 
