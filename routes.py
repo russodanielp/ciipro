@@ -36,6 +36,8 @@ from cluster import in_vitro_fingerprint_correlations
 
 from ml import get_class_stats
 
+from api.database_api import api
+
 # These variables are configured in CIIProConfig
 # TODO: put all this in a true config file
 app = Flask(__name__)
@@ -44,7 +46,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.secret_key = CIIProConfig.APP_SECRET_KEY
 app.config['RECAPTCHA_PRIVATE_KEY'] = CIIProConfig.RECAPTCHA_PRIVATE_KEY
 
+# register the routes api
 
+app.register_blueprint(api)
 
 db = SQLAlchemy(app)
 login_manager = LoginManager()
