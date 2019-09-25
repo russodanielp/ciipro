@@ -17,7 +17,7 @@ bbb = datasets.BBB
 oc_tox = datasets.ocular_toxicity
 
 master = datasets.master
-
+bit_counts = datasets.bit_counts
 
 AVAILABLE_DATABASES = {
     'bbb': bbb,
