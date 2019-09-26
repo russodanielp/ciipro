@@ -166,6 +166,19 @@ function deleteDataset() {
     location.reload();
 }
 
+function addInhouseDataset(dsName) {
+
+
+    data = {
+        inhouse_ds_name: dsName
+    }
+    console.log(data);
+    postData('/add_inhouse_dataset', data);
+
+    location.reload();
+}
+
+
 function postData(url, data) {
     // function that uses fetch model to send the current filters to the flask function
 

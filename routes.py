@@ -38,6 +38,8 @@ from ml import get_class_stats
 
 from api.database_api import api
 
+import inhouse_databases
+
 # These variables are configured in CIIProConfig
 # TODO: put all this in a true config file
 app = Flask(__name__)
@@ -1009,6 +1011,26 @@ def get_adj_matrix(clustering_name):
 
 
     return json.dumps(data)
+
+
+@login_required
+@app.route('/add_inhouse_dataset', methods=['POST'])
+def add_inhouse_dataset():
+    json_data = request.get_json()
+
+    inhouse_ds_name = json_data['inhouse_ds_name']
+
+    compounds, input_type = inhouse_databases.get_database(inhouse_ds_name)
+
+    identifiers = [compound['identifier'] for compound in compounds]
+    activities = [compound['activity'] for compound in compounds]
+
+    name = inhouse_ds_name.lower().replace(' ', '_')
+
+    ds_io.write_ds_to_json(identifiers, activities, g.user.get_user_folder('datasets'), name, input_type, set_type='training')
+
+    return 'OK', 200
+
 
 @login_required
 @app.route('/filter_profile', methods=['POST'])

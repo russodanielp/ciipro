@@ -65,6 +65,7 @@ class DataSet:
             cids = self.get_cids()
             cid_frame = pd.DataFrame(cids).drop_duplicates(self.db_id_name)
             cids = cid_frame['CID'].tolist()
+            print(cids, len(cids))
 
 
 
