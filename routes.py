@@ -816,60 +816,6 @@ def activitycliffs():
     return render_template('CIIProTools.html', datasets=g.user.get_user_datasets(set_type='training'), 
                            username=g.user.username, ac=df.to_html())	
 
-                               
-def zipBiosimFiles(USER_BIOSIMS_FOLDER, filename):
-    """ Zips biosimilarity, confidence, and biological nearest neighbor files.
-    """
-    os.chdir(USER_BIOSIMS_FOLDER)
-    z = zipfile.ZipFile(filename + '_BioSimilarity.zip', 'w')
-    z.write(filename + '_BioSim.txt')
-    z.write(filename + '_Bioneighbor.txt')
-    z.write(filename + '_BioSim_Conf.txt')
-    z.close()
-
-
-def zipPredictionsFiles(biosims_dir):
-    """ Zips biosimilarity, confidence, biological nearest neighbor, and bioprediction files.
-    """
-    dir_L = biosims_dir.split('/')
-    dir_ = '/'.join(dir_L[:-1])
-    os.chdir(dir_)
-    z = zipfile.ZipFile(dir_L[-1] + '_biosims.zip', 'w')
-    z.write(dir_L[-1] + '_BioSim.txt')
-    #z.write(filename + '_BioPred.txt')
-    #z.write(filename + '_Bioneighbor.txt')
-    z.write(dir_L[-1] + '_Conf.txt')
-    z.write(dir_L[-1] + '_BioSim_Conf.xlsx')
-    z.close()
-    
-def zipbioprofile(prof_dir):
-    """ Zips bioprofile and in vitro, in vivo correlation files.
-    """
-    dir_L = prof_dir.split('/')
-    dir_ = '/'.join(dir_L[:-1])
-    os.chdir(dir_)
-    z = zipfile.ZipFile(dir_L[-1].replace('.txt', '.zip'), 'w')
-    z.write(dir_L[-1])
-    z.write(dir_L[-1].replace('_BioProfile','_assay_stats'))
-    z.write(dir_L[-1].replace('.txt', '.xlsx'))
-    z.close()
-    
-@app.route('/sendbiosims')
-@login_required
-def sendbiosims():
-    zipPredictionsFiles(session['cur_biosim_dir'])
-    return send_file(session['cur_biosim_dir'] + '_biosims.zip', as_attachment=True)
- 
-@app.route('/sendbioprofile')
-@login_required
-def sendbioprofile():
-    zipbioprofile(session['cur_prof_dir'])
-    return send_file(session['cur_prof_dir'].replace('.txt', '.zip'), as_attachment=True)
-
-@app.route('/sendactcliff')
-@login_required
-def sendactcliff():
-    return send_file(session['cur_ciff_dir'], as_attachment=True)
 
 @app.route('/sendtutorial')
 def trainingsettutorial():
