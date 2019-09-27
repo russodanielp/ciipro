@@ -44,8 +44,8 @@ function networkGraph (graph) {
     var cardBody = d3.select("#cluster-graph-card-body");
 
     var body = d3.select("#cluster-graph"),
-        width = parseInt(cardBody.style("width")),
-        height = parseInt(cardBody.style("width")),
+        width = parseInt(cardBody.style("width"))-100,
+        height = parseInt(cardBody.style("width"))-100,
         radius = 6;
 
     // cluster colors
@@ -58,8 +58,9 @@ function networkGraph (graph) {
 
     var simulation = d3.forceSimulation()
         .force("link", d3.forceLink().id(function(d) { return d.id; })
-                                     .distance(function(d) { return 100; })
-                                     .strength(function(d) { return 1-d.weight; }))
+                                     .distance(100)
+                                     // .strength(function(d) { return 1-d.weight; })
+        )
         .force("charge", d3.forceManyBody())
         .force("center", d3.forceCenter(width / 2, height / 2));
 
@@ -83,7 +84,8 @@ function networkGraph (graph) {
               .call(d3.drag()
                   .on("start", dragstarted)
                   .on("drag", dragged)
-                  .on("end", dragended));
+                  .on("end", dragended)
+              );
 
       var label = svg.append("g")
           .attr("class", "labels")

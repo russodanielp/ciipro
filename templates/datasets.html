@@ -11,12 +11,14 @@
 <div class="dataset-body">
 
     <div class="row">
-        <div class="col-sm-12">
+        <div class="col-sm-6">
             <div class="card shadow p-3 mb-5 bg-white rounded">
               <div class="card-body">
                   <form action="/uploaddataset" method="post" enctype="multipart/form-data" name="">
-                      <h5 class="card-title">Uploading datasets</h5>
-                      <p class="card-text">Please select a file to upload a new dataset.</p>
+                      <h5 class="card-title">Upload a dataset.</h5>
+                      <p class="card-text">Please select a file to upload a new dataset. Datasets must be a
+                      tab-delimited file with two columns without headers.  The first column should be the chemical
+                      identifier and the second column should be a binary activity consisting only of 0s and 1s.</p>
 
                       <input type="file" class="form-control-file top-padding btm-padding" name="compound_file"
                              id="compound_file">
@@ -41,6 +43,48 @@
                          class="btn btn-primary btn-padding"
                          value="Upload dataset" onclick="loading()"></input>
                   </form>
+              </div>
+            </div>
+          </div>
+        <div class="col-sm-6">
+            <div class="card shadow p-3 mb-5 bg-white rounded">
+              <div class="card-body">
+
+                  <h5 class="card-title">CIIPro training sets.</h5>
+                  <p class="card-text">A variety of curated, ready-to-model training sets are available.
+                  Double-click a training set to add it to your available datasets.</p>
+
+                  <table class="table table-sm table-hover">
+                      <thead>
+                      <tr>
+                          <th scope="col">Name</th>
+                          <th scope="col">Endpoint</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                          <tr>
+                              <td>Acute oral toxicity</td>
+                              <td>LD<sub>50</sub> (mg/kg)</td>
+
+
+
+
+                          </tr>
+                          <tr>
+                              <td>Hepatotoxicity</td>
+                              <td>LD<sub>50</sub> (mg/kg)</td>
+                          </tr>
+
+                          <tr>
+                              <td>Ocular Toxicity</td>
+                              <td> GHS and U.S. EPA categorization </td>
+                          </tr>
+
+
+                      </tbody>
+                  </table>
+
+
               </div>
             </div>
           </div>
@@ -114,6 +158,13 @@ updateDataset();
 var e = document.getElementById("dataset-selection");
 e.addEventListener("change", function() {
     updateDataset();
+
+});
+
+
+$('tr').dblclick(function() {
+    var dataset = $(this).children("td:first-child").text();
+    addInhouseDataset(dataset);
 
 });
 

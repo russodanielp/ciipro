@@ -1020,7 +1020,7 @@ def add_inhouse_dataset():
 
     inhouse_ds_name = json_data['inhouse_ds_name']
 
-    compounds, input_type = inhouse_databases.get_database(inhouse_ds_name)
+    compounds, input_type = inhouse_databases.get_inhouse_database(inhouse_ds_name)
 
     identifiers = [compound['identifier'] for compound in compounds]
     activities = [compound['activity'] for compound in compounds]
