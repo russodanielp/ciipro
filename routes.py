@@ -36,7 +36,7 @@ from cluster import in_vitro_fingerprint_correlations
 
 from ml import get_class_stats
 
-from api.database_api import api
+#from api.database_api import api
 
 import inhouse_databases
 
@@ -50,7 +50,7 @@ app.config['RECAPTCHA_PRIVATE_KEY'] = CIIProConfig.RECAPTCHA_PRIVATE_KEY
 
 # register the routes api
 
-app.register_blueprint(api)
+#app.register_blueprint(api)
 
 db = SQLAlchemy(app)
 login_manager = LoginManager()
