@@ -68,7 +68,9 @@ def get_inhouse_database(database):
 
     results = master.find({database: {'$exists': True}}, {database: 1, '_id': 0})
 
-    compounds = AVAILABLE_DATABASES[database].find({"_id": {"$in": [result[database] for result in results]}},
+    compounds = AVAILABLE_DATABASES[database].find({"_id": {"$in": [result[database] for result in results]},
+                                                    ACTIVITY_MAPPER[database]: {"$exists": True}
+                                                    },
                                     {smiles_string: 1, ACTIVITY_MAPPER[database]: 1,
                                      NAME_MAPPER[database]: 1, '_id': 0})
     compounds = list(compounds)

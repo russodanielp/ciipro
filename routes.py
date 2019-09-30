@@ -457,7 +457,15 @@ def CIIProfiler():
                            datasets=g.user.get_user_datasets(set_type='training'))
 
 
-@app.route('/CIIPPredictor') 
+@app.route('/CIIProdatasets')
+def CIIProdatasets():
+    """ Displays CIIProfiler page with all available datasets in users compound folder.
+
+    """
+    return render_template('CIIProdatasets.html')
+
+
+@app.route('/CIIPPredictor')
 @login_required
 def CIIPPredictor():
     """ Displays CIIPBioNN page with all available profiles in users' profile folder.
