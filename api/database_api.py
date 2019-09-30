@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, session
-from api.databases import AVAILABLE_DATABASES, master, bit_counts, ACTIVITY_MAPPER, NAME_MAPPER
+from databases import AVAILABLE_DATABASES, master, bit_counts, ACTIVITY_MAPPER, NAME_MAPPER
 from rdkit import Chem
 from rdkit.Chem import AllChem
 
