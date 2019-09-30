@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+import os, sys
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+
+
 import os
 import ntpath
 
@@ -36,7 +41,7 @@ from cluster import in_vitro_fingerprint_correlations
 
 from ml import get_class_stats
 
-#from api.database_api import api
+from api.database_api import api
 
 import inhouse_databases
 
