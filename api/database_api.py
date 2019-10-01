@@ -51,7 +51,7 @@ def get_database(database):
                     record_to_send['activities'][db] = db_results
 
             mols_to_send.append(record_to_send)
-        return jsonify(mols_to_send)
+        return jsonify(results=mols_to_send)
 
 @api.route('/get_t_similar/<smiles>/<threshold>')
 def get_t_similar(smiles, threshold):
@@ -93,5 +93,5 @@ def get_t_similar(smiles, threshold):
 
             similar_mols.append(record_to_send)
     similar_mols = sorted(similar_mols, key=lambda mol: mol['similarity'], reverse=True)
-    return jsonify(similar_mols)
+    return jsonify(results=similar_mols)
 
