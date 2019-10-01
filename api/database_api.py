@@ -39,8 +39,8 @@ def get_database(database):
             record_to_send = {}
             record_to_send['activities'] = {}
 
-            smiles = Chem.MolToSmiles(Chem.Mol(molecule['mol']))
-            record_to_send['smiles'] = smiles
+            # smiles = Chem.MolToSmiles(Chem.Mol(molecule['mol']))
+            # record_to_send['smiles'] = smiles
             record_to_send['zhu_id'] = molecule['zhu_id']
             for db in AVAILABLE_DATABASES.keys():
                 if molecule.get(db, False):
