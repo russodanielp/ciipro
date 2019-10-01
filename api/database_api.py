@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify, session
 from .databases import AVAILABLE_DATABASES, master, bit_counts, ACTIVITY_MAPPER, NAME_MAPPER
 from rdkit import Chem
-#from rdkit.Chem import AllChem
-#from rdkit import rdBase
+from rdkit.Chem import AllChem
+from rdkit import rdBase
 
 #print(rdBase.rdkitVersion)
 import sys
@@ -28,8 +28,9 @@ def get_database(database):
                                                             ACTIVITY_MAPPER[database]: {"$exists": True}
                                                             },
                                         {smiles_string: 1, ACTIVITY_MAPPER[database]: 1, NAME_MAPPER[database]: 1, '_id': 0})
-
-        return jsonify(list(acute_oral_db))
+	acute_oral_db = list(acute_oral_db)
+	print(acute_oral_db)
+        return jsonify(acute_oral_db)
 
     else:
         mols_to_send = []
