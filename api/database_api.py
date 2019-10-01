@@ -1,8 +1,13 @@
 from flask import Blueprint, request, jsonify, session
-from databases import AVAILABLE_DATABASES, master, bit_counts, ACTIVITY_MAPPER, NAME_MAPPER
+from .databases import AVAILABLE_DATABASES, master, bit_counts, ACTIVITY_MAPPER, NAME_MAPPER
 from rdkit import Chem
-from rdkit.Chem import AllChem
+#from rdkit.Chem import AllChem
+#from rdkit import rdBase
 
+#print(rdBase.rdkitVersion)
+import sys
+
+print(sys.executable)
 
 api = Blueprint('api', 'api', url_prefix='/api')
 
