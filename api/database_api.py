@@ -29,7 +29,6 @@ def get_database(database):
                                                             },
                                         {smiles_string: 1, ACTIVITY_MAPPER[database]: 1, NAME_MAPPER[database]: 1, '_id': 0})
         acute_oral_db = list(acute_oral_db)
-        print(acute_oral_db)
         return jsonify(results=acute_oral_db)
 
     else:
