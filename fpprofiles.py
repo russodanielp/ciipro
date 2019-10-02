@@ -4,8 +4,9 @@
 import json, os
 import pandas as pd
 from sklearn.metrics.pairwise import pairwise_distances
+from scipy.spatial.distance import pdist, squareform
 from sklearn.cluster import AgglomerativeClustering
-
+from scipy.cluster.hierarchy import linkage
 
 
 class FPprofile:
@@ -65,7 +66,7 @@ class FPprofile:
         profile.columns = list(map(int, profile.columns))
         return profile
 
-    def get_adjacency(self, metric='jaccard', min_distance=0.5, n_clusters=5, min_connections=1):
+    def get_adjacency(self, metric='jaccard', min_distance=0.5, min_connections=1):
         """
         calculates an adjacency matrix from fingerprint profile
 
@@ -75,15 +76,19 @@ class FPprofile:
         """
         X = self.to_frame()
 
-        connectivity_matrix = pd.DataFrame(pairwise_distances(X, metric=metric), index=X.index, columns=X.index)
+        distances = pdist(X, metric=metric)
 
-        cluster = AgglomerativeClustering(n_clusters=n_clusters, affinity='precomputed', linkage='average')
+        connectivity_matrix = pd.DataFrame(squareform(distances), index=X.index, columns=X.index)
 
-        cluster.fit(connectivity_matrix)
+        Z = linkage(distances, method='single').tolist()
+
+        print(X.shape)
 
         nodes = []
+        classes = 0
         for idx, aid in enumerate(X.index):
-            nodes.append({"id": int(aid), "name": int(aid), "class": int(cluster.labels_[idx])})
+            nodes.append({"id": int(aid), "name": int(aid), "class": classes})
+            classes = classes + 1
 
         links = []
 
@@ -99,20 +104,12 @@ class FPprofile:
 
                     num_connections[int(aid_one)] = num_connections.get(int(aid_one), 0) + 1
 
-        final_nodes = nodes.copy()
-        final_links = links.copy()
 
-        # for i, node in enumerate(nodes):
-        #     if num_connections.get(node["id"], 0) < min_connections:
-        #         del final_nodes[i]
-        #
-        # for i, link in enumerate(links):
-        #     if num_connections.get(link["source"], 0) < min_connections:
-        #         del final_links[i]
+        adj_matrix = AdjMatrix(nodes, links, self.name, Z)
 
+        #adj_matrix_new = removed_singletons(adj_matrix)
 
-        print(final_nodes, final_links)
-        return AdjMatrix(final_nodes, final_links, self.name)
+        return adj_matrix
 
 
     @classmethod
@@ -151,11 +148,12 @@ class FPprofile:
 
 class AdjMatrix:
 
-    def __init__(self, nodes, links, profile_used):
+    def __init__(self, nodes, links, profile_used, linkage):
 
         self.nodes = nodes
         self.links = links
         self.profile_used = profile_used
+        self.linkage = linkage
 
 
     def to_json(self, write_dir):
@@ -163,6 +161,7 @@ class AdjMatrix:
             'nodes': self.nodes,
             'links': self.links,
             'profile_used': self.profile_used,
+            'linkage': self.linkage
         }
         with open(os.path.join(write_dir, '{}_adj_matrix.json'.format(self.profile_used)), 'w') as outfile:
             json.dump(json_data, outfile, indent=4)
@@ -174,8 +173,58 @@ class AdjMatrix:
 
         return cls(json_data['nodes'],
                    json_data['links'],
-                   json_data['profile_used'])
+                   json_data['profile_used'],
+                   json_data['linkage'])
 
+
+
+def removed_singletons(adj_matrix):
+    """ removes nodes that are singletons, ie., have no other links in the set """
+    final_nodes = adj_matrix.nodes.copy()
+    final_links = adj_matrix.links.copy()
+
+    num_connections = {}
+    print(len(final_nodes), len(adj_matrix.nodes))
+
+    for link in adj_matrix.links:
+
+        aid = link["source"]
+        num_connections[int(aid)] = num_connections.get(int(aid), 0) + 1
+
+
+    nodes_to_remove = []
+    links_to_remove = []
+
+    for i, node in enumerate(adj_matrix.nodes):
+        if num_connections.get(node["id"], 0) <= 0:
+            nodes_to_remove.append(i)
+
+    for i, link in enumerate(adj_matrix.links):
+        if num_connections.get(link["source"], 0) <= 0:
+            links_to_remove.append(i)
+
+
+    nodes_to_remove = sorted(nodes_to_remove, reverse=True)
+    links_to_remove = sorted(links_to_remove, reverse=True)
+
+
+    for node_to_remove in nodes_to_remove:
+        del final_nodes[node_to_remove]
+    for link_to_remove in links_to_remove:
+        del final_links[link_to_remove]
+
+    return AdjMatrix(final_nodes, final_links, adj_matrix.profile_used, adj_matrix.linkage)
 
 if __name__ == '__main__':
-    pass
+
+    import os
+
+    adj_json_file = os.path.join(os.getenv('CIIPRO_DATA'), 'Guest', 'fp_profiles', 'acute_oral_toxicity_profile_9_27_2019_clustering_adj_matrix.json')
+
+
+    adj_matrix = AdjMatrix.from_json(adj_json_file)
+
+    adj_matrix_new = removed_singletons(adj_matrix)
+
+    adj_matrix_new.profile_used = "new_clustering"
+    adj_matrix_new.to_json(os.path.join(os.getenv('CIIPRO_DATA'), 'Guest', 'fp_profiles'))

@@ -138,9 +138,48 @@ function networkGraph (graph) {
         }
 }
 
+function updateColors(graph){
+    var fill = d3.scaleOrdinal(d3.schemeCategory20);
+    nodes = d3.selectAll("circle");
+
+        nodes.data(graph.nodes)
+      .enter().append("circle")
+              .style("fill", function(d) { return fill(d.class); })
+}
+
+
+
+function merge(graph, n) {
+    // merge clusters at n
+
+    var mergeData = graph.linkage[n];
+
+    var mergeIdxOne = mergeData[0];
+    var mergeIdxTwo = mergeData[1];
+
+    if (mergeIdxTwo >= graph.nodes.length) {
+        mergeIdxTwo = mergeIdxTwo - graph.nodes.length
+    }
+
+    if (mergeIdxOne >= graph.nodes.length) {
+        mergeIdxOne = mergeIdxOne - graph.nodes.length
+    }
+
+    console.log(mergeIdxTwo, mergeIdxOne)
+    nodeOne = graph.nodes[mergeIdxOne];
+    nodeTwo = graph.nodes[mergeIdxTwo];
+
+    if (nodeOne.class < nodeTwo.class) {
+        nodeTwo.class = nodeOne.class
+    } else {
+        nodeOne.class = nodeTwo.class
+    }
+
+}
+
+
 function plotGraph() {
     currentClustering = $("#cluster-selection").find(":selected").text().trim();
-    console.log(currentClustering)
 
 
     var queryUrl = $SCRIPT_ROOT + "get_adj_matrix/" + currentClustering;

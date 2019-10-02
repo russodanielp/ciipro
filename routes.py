@@ -539,7 +539,7 @@ def CIIPro_Cluster():
 
         fp_profile.to_json(g.user.get_user_folder('fp_profiles'))
 
-        adj_matrix = fp_profile.get_adjacency(n_clusters=n_clusters)
+        adj_matrix = fp_profile.get_adjacency()
 
         adj_matrix.to_json(g.user.get_user_folder('fp_profiles'))
 
@@ -969,7 +969,8 @@ def get_adj_matrix(clustering_name):
     data  = {
         'links': adj_matrix.links,
         'nodes': adj_matrix.nodes,
-        'profile_used': adj_matrix.profile_used
+        'profile_used': adj_matrix.profile_used,
+        'linkage': adj_matrix.linkage
     }
 
 
