@@ -170,9 +170,22 @@ function merge(graph, n) {
     nodeTwo = graph.nodes[mergeIdxTwo];
 
     if (nodeOne.class < nodeTwo.class) {
-        nodeTwo.class = nodeOne.class
+        for (var i = 0; i < graph.nodes.length; i++) {
+
+            if (graph.nodes[i].class == nodeTwo.class) {
+                graph.nodes[i].class = nodeOne.class
+            }
+
+        }
+
     } else {
-        nodeOne.class = nodeTwo.class
+        for (var i = 0; i < graph.nodes.length; i++) {
+
+            if (graph.nodes[i].class == nodeOne.class) {
+                graph.nodes[i].class = nodeTwo.class
+            }
+
+        }
     }
 
 }
