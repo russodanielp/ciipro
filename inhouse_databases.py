@@ -85,7 +85,7 @@ def get_inhouse_database(database):
             compound['activity'] =  compound.get(ACTIVITY_MAPPER[database], 0)
 
 
-        if database == 'ocular_toxicity':
+        if database == 'ocular_toxicity' or database == 'hepatotoxicity':
             compound['identifier'] = compound['SMILES']
         else:
             compound['identifier'] = compound[NAME_MAPPER[database]]
@@ -97,5 +97,5 @@ def get_inhouse_database(database):
     if database == 'acute_oral_toxicity':
         identifier_type = 'cas'
 
-    print(compounds)
+
     return compounds, identifier_type
