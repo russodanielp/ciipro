@@ -40,8 +40,6 @@
                   <input style="margin-left: 20px" type="text"
                          size=30 id="clustering_filename" name="clustering_filename" />
 
-                  <label for="n_clusters">Number of clusters to identify:</label>
-                  <input type="number" value="6" name="n_clusters" id="n_clusters" min="0" max="30" step="1"/>
                 </div>
 
                 <input type="submit" class="btn btn-primary btn-padding"
@@ -87,7 +85,10 @@
 
                 <div class="slidecontainer">
                   <label for="cluster-slider">Select Number of Clusters:</label><br>
-                  <input type="range" min="1" max="10" value="1" class="slider" id="cluster-slider">
+                  <input type="range" min="1" max="10" value="1" class="slider" id="cluster-slider"><br>
+
+                    <p>Current Clusters: <span id="noClusters"></span></p>
+
                 </div>
               </div>
             </div>
@@ -128,17 +129,29 @@
         changeClusteringName();
     });
 
-    $("#cluster-selection").on("change", function() {
-        plotGraph();
-    });
 
     $("#cluster-slider").attr("max", graph.nodes.length);
     $("#cluster-slider").val(graph.nodes.length);
+    $("#noClusters").text($("#cluster-slider").val());
+
+    $("#cluster-selection").on("change", function() {
+        plotGraph();
+
+        var queryUrl = $SCRIPT_ROOT + "get_adj_matrix/" + currentClustering;
+        var graph = JSON.parse(getResponseFromURL(queryUrl));
+        $("#cluster-slider").attr("max", graph.nodes.length);
+        $("#cluster-slider").val(graph.nodes.length);
+        $("#noClusters").text($("#cluster-slider").val());
+
+    });
+
+
 
     $("#cluster-slider").on("change", function() {
 
-        merge(graph, 16-$(this).val());
+        merge(graph, graph.nodes.length-1-$(this).val());
         networkGraph(graph);
+        $("#noClusters").text($("#cluster-slider").val());
     });
 
 

@@ -80,7 +80,7 @@ class FPprofile:
 
         connectivity_matrix = pd.DataFrame(squareform(distances), index=X.index, columns=X.index)
 
-        Z = linkage(distances, method='single').tolist()
+        Z = linkage(distances, method='single')
 
         print(X.shape)
 
@@ -104,6 +104,7 @@ class FPprofile:
 
                     num_connections[int(aid_one)] = num_connections.get(int(aid_one), 0) + 1
 
+        #Z = Z[(Z[:, 2] <= min_distance)].tolist()
 
         adj_matrix = AdjMatrix(nodes, links, self.name, Z)
 

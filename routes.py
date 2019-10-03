@@ -513,7 +513,7 @@ def CIIPro_Cluster():
 
         profile_filename = request.form['profile_filename'].strip()
         clustering_filename = request.form['clustering_filename'].strip()
-        n_clusters = int(request.form['n_clusters'].strip())
+
         threshold = 0.05
 
         training_profile = g.user.load_bioprofile(profile_filename)
