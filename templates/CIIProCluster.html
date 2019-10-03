@@ -76,7 +76,7 @@
                   {% endif %}
                   {% if clusters %}
                     <div class="form-group">
-                      <label for="sel1">Select cluster:</label>
+                      <label for="cluster-selection">Select cluster:</label>
                       <select class="form-control" name="clustering" id="cluster-selection">
                         {% for cluster in clusters %}
                             <option value="{{ cluster }}"> {{ cluster }}</option>
@@ -85,7 +85,10 @@
                     </div>
                  {%  endif %}
 
-
+                <div class="slidecontainer">
+                  <label for="cluster-slider">Select Number of Clusters:</label><br>
+                  <input type="range" min="1" max="10" value="1" class="slider" id="cluster-slider">
+                </div>
               </div>
             </div>
           </div>
@@ -108,6 +111,14 @@
 
     profileSelector = $("#profile-selection");
 
+    currentClustering = $("#cluster-selection").find(":selected").text().trim();
+
+
+    var queryUrl = $SCRIPT_ROOT + "get_adj_matrix/" + currentClustering;
+    var graph = JSON.parse(getResponseFromURL(queryUrl));
+
+    networkGraph(graph);
+
     refreshProfileClusterPage();
     changeClusteringName();
     plotGraph();
@@ -120,6 +131,16 @@
     $("#cluster-selection").on("change", function() {
         plotGraph();
     });
+
+    $("#cluster-slider").attr("max", graph.nodes.length);
+    $("#cluster-slider").val(graph.nodes.length);
+
+    $("#cluster-slider").on("change", function() {
+
+        merge(graph, 16-$(this).val());
+        networkGraph(graph);
+    });
+
 
 </script>
 

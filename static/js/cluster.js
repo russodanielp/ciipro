@@ -148,45 +148,54 @@ function updateColors(graph){
 }
 
 
+function findMinIdx(Z, n, length) {
+    if (Z[n][0] >= length) {
+        return findMinIdx(Z, Z[n][0]-length, length)
+    } else if (Z[n][1] >= length) {
+        return Math.min(Z[n][0], findMinIdx(Z, Z[n][1]-length, length))
+    } else {
+        return Math.min(Z[n][0], Z[n][1])
+    }
+}
+
+
+function findAssocIdx(Z, n, length) {
+    console.log(n);
+    if (Z[n][0] >= length) {
+        return findAssocIdx(Z, Z[n][0]-length, length).concat(findAssocIdx(Z, Z[n][1]-length, length))
+    } else if (Z[n][1] >= length) {
+        return [Z[n][0]].concat(findAssocIdx(Z, Z[n][1]-length, length))
+    } else {
+        return [Z[n][0], Z[n][1]]
+    }
+}
 
 function merge(graph, n) {
-    // merge clusters at n
 
-    var mergeData = graph.linkage[n];
+    if (n >= 0) {
 
-    var mergeIdxOne = mergeData[0];
-    var mergeIdxTwo = mergeData[1];
-
-    if (mergeIdxTwo >= graph.nodes.length) {
-        mergeIdxTwo = mergeIdxTwo - graph.nodes.length
-    }
-
-    if (mergeIdxOne >= graph.nodes.length) {
-        mergeIdxOne = mergeIdxOne - graph.nodes.length
-    }
-
-    console.log(mergeIdxTwo, mergeIdxOne)
-    nodeOne = graph.nodes[mergeIdxOne];
-    nodeTwo = graph.nodes[mergeIdxTwo];
-
-    if (nodeOne.class < nodeTwo.class) {
-        for (var i = 0; i < graph.nodes.length; i++) {
-
-            if (graph.nodes[i].class == nodeTwo.class) {
-                graph.nodes[i].class = nodeOne.class
-            }
-
-        }
-
-    } else {
-        for (var i = 0; i < graph.nodes.length; i++) {
-
-            if (graph.nodes[i].class == nodeOne.class) {
-                graph.nodes[i].class = nodeTwo.class
-            }
-
+        var clusterToMerge = findMinIdx(graph.linkage, n, graph.nodes.length);
+        var assocIdx = findAssocIdx(graph.linkage, n, graph.nodes.length);
+        for (index = 0; index < assocIdx.length; index++) {
+            graph.nodes[assocIdx[index]].class = clusterToMerge;
         }
     }
+
+    // reset clusters not merge
+    for (index = n+1; index < graph.linkage.length; index++) {
+        var cluserOneIdx = graph.linkage[index][0];
+        var cluserTwoIdx = graph.linkage[index][1];
+
+        if (cluserOneIdx < graph.nodes.length) {
+            graph.nodes[cluserOneIdx].class = graph.nodes[cluserOneIdx].index
+        }
+
+        if (cluserTwoIdx < graph.nodes.length) {
+            graph.nodes[cluserTwoIdx].class = graph.nodes[cluserTwoIdx].index
+        }
+    }
+
+
 
 }
 
