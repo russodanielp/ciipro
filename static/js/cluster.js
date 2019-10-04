@@ -150,7 +150,7 @@ function updateColors(graph){
 
 function findMinIdx(Z, n, length) {
     if (Z[n][0] >= length) {
-        return findMinIdx(Z, Z[n][0]-length, length)
+        return Math.min(findMinIdx(Z, Z[n][0]-length, length))
     } else if (Z[n][1] >= length) {
         return Math.min(Z[n][0], findMinIdx(Z, Z[n][1]-length, length))
     } else {
@@ -160,7 +160,6 @@ function findMinIdx(Z, n, length) {
 
 
 function findAssocIdx(Z, n, length) {
-    console.log(n);
     if (Z[n][0] >= length) {
         return findAssocIdx(Z, Z[n][0]-length, length).concat(findAssocIdx(Z, Z[n][1]-length, length))
     } else if (Z[n][1] >= length) {
@@ -174,8 +173,8 @@ function merge(graph, n) {
 
     if (n >= 0) {
 
-        var clusterToMerge = findMinIdx(graph.linkage, n, graph.nodes.length);
-        var assocIdx = findAssocIdx(graph.linkage, n, graph.nodes.length);
+        var clusterToMerge = findMinIdx(graph.linkage, n, graph.linkage.length+1);
+        var assocIdx = findAssocIdx(graph.linkage, n, graph.linkage.length+1);
         for (index = 0; index < assocIdx.length; index++) {
             graph.nodes[assocIdx[index]].class = clusterToMerge;
         }

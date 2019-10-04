@@ -80,9 +80,6 @@ class FPprofile:
 
         connectivity_matrix = pd.DataFrame(squareform(distances), index=X.index, columns=X.index)
 
-        Z = linkage(distances, method='single')
-
-        print(X.shape)
 
         nodes = []
         classes = 0
@@ -104,13 +101,28 @@ class FPprofile:
 
                     num_connections[int(aid_one)] = num_connections.get(int(aid_one), 0) + 1
 
-        #Z = Z[(Z[:, 2] <= min_distance)].tolist()
 
-        adj_matrix = AdjMatrix(nodes, links, self.name, Z)
 
-        #adj_matrix_new = removed_singletons(adj_matrix)
 
-        return adj_matrix
+
+
+
+        adj_matrix = AdjMatrix(nodes, links, self.name, None)
+        adj_matrix_new = remove_singletons(adj_matrix)
+
+        non_singletons = [node["id"] for node in adj_matrix_new.nodes]
+
+        con_matrix_no_singletons = connectivity_matrix.loc[connectivity_matrix.index.isin(non_singletons),
+                                                      connectivity_matrix.columns.isin(non_singletons)]
+
+        # get a new connectivity matrix with the singletons removed
+
+        distances = squareform(con_matrix_no_singletons.values)
+
+        Z = linkage(distances, method='single').tolist()
+        adj_matrix_new.linkage = Z
+
+        return adj_matrix_new
 
 
     @classmethod
@@ -179,7 +191,7 @@ class AdjMatrix:
 
 
 
-def removed_singletons(adj_matrix):
+def remove_singletons(adj_matrix):
     """ removes nodes that are singletons, ie., have no other links in the set """
     final_nodes = adj_matrix.nodes.copy()
     final_links = adj_matrix.links.copy()
