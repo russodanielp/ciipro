@@ -81,6 +81,8 @@ function networkGraph (graph) {
               .style("fill", function(d) { return fill(d.class); })
              .style("stroke", "#969696")
              .style("stroke-width", "1px")
+             .attr("classLabel", function(d) { return d.class; })
+             .attr("AID", function(d) { return d.id; })
               .call(d3.drag()
                   .on("start", dragstarted)
                   .on("drag", dragged)
@@ -198,7 +200,6 @@ function merge(graph, n) {
 
 }
 
-
 function plotGraph() {
     currentClustering = $("#cluster-selection").find(":selected").text().trim();
 
@@ -207,4 +208,49 @@ function plotGraph() {
     var graph = JSON.parse(getResponseFromURL(queryUrl));
 
     networkGraph(graph);
+}
+
+
+function postData(url, data) {
+    // function that uses fetch model to send the current filters to the flask function
+
+
+    fetch(url, {
+
+            method: 'POST',
+
+            headers: {
+                'Content-type': 'application/json'
+            },
+
+            body: JSON.stringify(data)
+        }
+        )
+}
+
+function sendClusterData() {
+    // all the circles on the HTML should be PubChem AIDs
+
+    var nodes = $("circle");
+
+    var results = {};
+    results.clusterAssignments = [];
+
+    for (i = 0; i < nodes.length; i++) {
+        var data = {};
+
+        data.aid = +$(nodes[i]).attr("AID");
+        data.classLabel = +$(nodes[i]).attr("classLabel");
+
+        results.clusterAssignments.push(data);
+    }
+
+    results.currentClustering = $("#cluster-selection").find(":selected").text().trim();
+
+    data = {
+        results: results
+    }
+
+    postData('/sendClusterData', data);
+
 }

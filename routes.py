@@ -19,7 +19,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sql import passwordRetrieval, usernameRetrieval, passwordReset
 from CIIProTools import *
 from ciipro_config import CIIProConfig
-import json
+import json, glob
 from BioSimLib import *
 #import urllib
 import zipfile
@@ -146,6 +146,11 @@ class User(db.Model):
         adj_json_file = os.path.join(self.get_user_folder('fp_profiles'),
                                      '{}_adj_matrix.json'.format(clustering_name))
         return fp.AdjMatrix.from_json(adj_json_file)
+
+    def load_fp_profile(self, clustering_name):
+        fp_json_file = os.path.join(self.get_user_folder('fp_profiles'),
+                                     '{}.json'.format(clustering_name))
+        return fp.FPprofile.from_json(fp_json_file)
 
 
     
@@ -942,6 +947,7 @@ def delete_profile():
 
     os.remove(profile_path)
 
+    return 'OK', 200
 
 @login_required
 @app.route('/delete_dataset', methods=['POST'])
@@ -959,6 +965,74 @@ def delete_dataset():
     os.remove(dataset_path)
 
     return 'OK', 200
+
+
+
+@login_required
+@app.route('/sendClusterData', methods=['POST'])
+def send_cluster_data():
+    """
+        retrieve cluster data from the server
+
+    """
+    json_data = request.get_json()
+
+    cluster_data = json_data['results']
+
+    fp_profile = g.user.load_fp_profile(cluster_data['currentClustering'])
+
+    profile = g.user.load_bioprofile(fp_profile.meta['profile_used'])
+
+    clusters = pd.DataFrame(cluster_data['clusterAssignments'])
+
+    grouped_by_cluster = clusters.groupby('classLabel')
+
+    main_frame = pd.DataFrame(list(zip(profile.cids, profile.outcomes)), index=profile.aids, columns=['cids', 'outcomes'])
+    main_frame.index = main_frame.index.astype('int')
+    main_frame.cids = main_frame.cids.astype('int')
+    main_frame.outcomes = main_frame.outcomes.astype('int')
+
+    stats_frame = pd.DataFrame(profile.stats)
+    stats_frame.index = stats_frame.aid.astype(int)
+
+
+    conversions = {"Specificity": "float", "Coverage": "float", "FP": "float", "CCR": "float",
+                   "L parameter": "float", "Sensitivity": "float", "PPV": "float", "NPV": "float",
+                   "TP": "int", "FN": "int", "aid": "int", "TN": "int"}
+
+    stats_frame.astype(conversions)
+
+    # remove previous clusters
+
+    previous_files = glob.glob(os.path.join(g.user.get_user_folder('profiles'), '{}_cluster_*.json'.format(profile.name)))
+
+    for json_file in previous_files:
+        os.remove(json_file)
+
+    for clst, clstr_data in grouped_by_cluster:
+        clstr_aids = clstr_data.aid.tolist()
+
+        sub_frame = main_frame.loc[clstr_aids]
+        sub_stats = stats_frame.loc[clstr_aids]
+
+        aids = sub_frame.index.tolist()
+        cids = sub_frame.cids.tolist()
+        outcomes = sub_frame.outcomes.tolist()
+        stats = sub_stats.to_dict('records')
+        name = '{}_cluster_{}'.format(profile.name, clst)
+
+        meta = {"num_cmps": len(cids),
+                "num_total_actives": int((sub_frame['outcomes'] == 1).sum()),
+                "num_total_inactives": int((sub_frame['outcomes'] == -1).sum()),
+                "training_set": profile.meta['training_set'],
+                "num_aids": len(aids)}
+
+        sub_profile = bp.Bioprofile(name, cids, aids, outcomes, stats, meta)
+
+        sub_profile.to_json(g.user.get_user_folder('profiles'))
+
+    return 'OK', 200
+
 
 @login_required
 @app.route('/get_adj_matrix/<clustering_name>')
