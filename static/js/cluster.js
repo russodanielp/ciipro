@@ -40,7 +40,9 @@ function refreshProfileClusterPage() {
 
 function networkGraph (graph) {
 
+
     d3.select("#cluster-graph").select("svg").remove();
+
     var cardBody = d3.select("#cluster-graph-card-body");
 
     var body = d3.select("#cluster-graph"),
@@ -82,12 +84,13 @@ function networkGraph (graph) {
              .style("stroke", "#969696")
              .style("stroke-width", "1px")
              .attr("classLabel", function(d) { return d.class; })
+             .attr("id", function(d) { return "AID" + d.id; })
              .attr("AID", function(d) { return d.id; })
-              .call(d3.drag()
-                  .on("start", dragstarted)
-                  .on("drag", dragged)
-                  .on("end", dragended)
-              );
+              // .call(d3.drag()
+              //     .on("start", dragstarted)
+              //     .on("drag", dragged)
+              //     .on("end", dragended)
+              // );
 
       var label = svg.append("g")
           .attr("class", "labels")
@@ -140,14 +143,6 @@ function networkGraph (graph) {
         }
 }
 
-function updateColors(graph){
-    var fill = d3.scaleOrdinal(d3.schemeCategory20);
-    nodes = d3.selectAll("circle");
-
-        nodes.data(graph.nodes)
-      .enter().append("circle")
-              .style("fill", function(d) { return fill(d.class); })
-}
 
 
 function findMinIdx(Z, n, length) {
@@ -173,6 +168,13 @@ function findAssocIdx(Z, n, length) {
 
 function merge(graph, n) {
 
+
+    for (i = 0; i < graph.nodes.length; i++) {
+
+        // graph.nodes[i].class = graph.nodes[i].index;
+        graph.nodes[i].prevClass = graph.nodes[i].class;
+    }
+
     if (n >= 0) {
 
         var clusterToMerge = findMinIdx(graph.linkage, n, graph.linkage.length+1);
@@ -181,6 +183,16 @@ function merge(graph, n) {
             graph.nodes[assocIdx[index]].class = clusterToMerge;
         }
     }
+
+        for (i = 0; i < graph.nodes.length; i++) {
+            if (graph.nodes[i].class != graph.nodes[i].prevClass) {
+                graph.nodes[i].isChanged = true;
+            } else {
+                graph.nodes[i].isChanged = false;
+            }
+
+    }
+
 
     // reset clusters not merge
     for (index = n+1; index < graph.linkage.length; index++) {
@@ -200,12 +212,32 @@ function merge(graph, n) {
 
 }
 
+
+function updateColors() {
+
+    var fill = d3.scaleOrdinal(d3.schemeCategory20);
+    nodes = d3.selectAll("circle");
+
+
+            nodes.data(graph.nodes)
+            nodes.filter(function(d) {
+              return d.isChanged;
+            }).transition().duration(1000)
+                .style("r", 16)
+                .transition().duration(750).style("fill", function (d) {return fill(d.class)})
+            .transition().duration(1000)
+                .style("r", 6)
+
+
+
+}
+
 function plotGraph() {
     currentClustering = $("#cluster-selection").find(":selected").text().trim();
 
 
     var queryUrl = $SCRIPT_ROOT + "get_adj_matrix/" + currentClustering;
-    var graph = JSON.parse(getResponseFromURL(queryUrl));
+    graph = JSON.parse(getResponseFromURL(queryUrl));
 
     networkGraph(graph);
 }
@@ -231,7 +263,7 @@ function postData(url, data) {
 function sendClusterData() {
     // all the circles on the HTML should be PubChem AIDs
 
-    var nodes = $("circle");
+    nodes = $("circle");
 
     var results = {};
     results.clusterAssignments = [];

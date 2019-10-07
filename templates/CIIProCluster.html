@@ -150,9 +150,10 @@
 
 
     $("#cluster-slider").on("change", function() {
-
+        {#var queryUrl = $SCRIPT_ROOT + "get_adj_matrix/" + currentClustering;#}
+        {#graph = JSON.parse(getResponseFromURL(queryUrl));#}
         merge(graph, graph.nodes.length-1-$(this).val());
-        networkGraph(graph);
+        updateColors();
         $("#noClusters").text($("#cluster-slider").val());
     });
 
