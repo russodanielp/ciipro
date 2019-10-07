@@ -157,7 +157,7 @@ function findMinIdx(Z, n, length) {
 
 
 function findAssocIdx(Z, n, length) {
-    if (Z[n][0] >= length) {
+    if ((Z[n][1] >= length) && (Z[n][0] >= length)) {
         return findAssocIdx(Z, Z[n][0]-length, length).concat(findAssocIdx(Z, Z[n][1]-length, length))
     } else if (Z[n][1] >= length) {
         return [Z[n][0]].concat(findAssocIdx(Z, Z[n][1]-length, length))
@@ -175,13 +175,22 @@ function merge(graph, n) {
         graph.nodes[i].prevClass = graph.nodes[i].class;
     }
 
-    if (n >= 0) {
+    if (n > 0) {
 
-        var clusterToMerge = findMinIdx(graph.linkage, n, graph.linkage.length+1);
-        var assocIdx = findAssocIdx(graph.linkage, n, graph.linkage.length+1);
+        var assocIdx = findAssocIdx(graph.linkage, n, graph.nodes.length);
+
+        var prevClasses = [];
+        console.log(assocIdx)
         for (index = 0; index < assocIdx.length; index++) {
-            graph.nodes[assocIdx[index]].class = clusterToMerge;
+            prevClasses.push(graph.nodes[assocIdx[index]].class);
         }
+
+        var newClass = Math.min(...prevClasses);
+        for (index = 0; index < assocIdx.length; index++) {
+            graph.nodes[assocIdx[index]].class = newClass;
+        }
+
+
     }
 
         for (i = 0; i < graph.nodes.length; i++) {
@@ -193,22 +202,44 @@ function merge(graph, n) {
 
     }
 
+}
 
-    // reset clusters not merge
-    for (index = n+1; index < graph.linkage.length; index++) {
-        var cluserOneIdx = graph.linkage[index][0];
-        var cluserTwoIdx = graph.linkage[index][1];
 
-        if (cluserOneIdx < graph.nodes.length) {
+function unmerge(graph, n) {
+    var cluserOneIdx = graph.linkage[n][0];
+    var cluserTwoIdx = graph.linkage[n][1];
+
+    if (cluserOneIdx < graph.nodes.length) {
             graph.nodes[cluserOneIdx].class = graph.nodes[cluserOneIdx].index
+    } else {
+        cluserOneIdx = findAssocIdx(graph.linkage, cluserOneIdx-graph.nodes.length, graph.nodes.length+1);
+
+        var clusterClasses = [];
+        for (i = 0; i < cluserOneIdx.length; i++) {
+            clusterClasses.push(graph.nodes[cluserOneIdx[i]].class)
         }
 
-        if (cluserTwoIdx < graph.nodes.length) {
-            graph.nodes[cluserTwoIdx].class = graph.nodes[cluserTwoIdx].index
+        var newClass = Math.min(...clusterClasses);
+        for (i = 0; i < cluserOneIdx.length; i++) {
+            graph.nodes[cluserOneIdx[i]].class = newClass;
         }
     }
 
+    if (cluserTwoIdx < graph.nodes.length) {
+            graph.nodes[cluserTwoIdx].class = graph.nodes[cluserTwoIdx].index
+    } else {
+        cluserTwoIdx = findAssocIdx(graph.linkage, cluserTwoIdx-graph.nodes.length, graph.nodes.length+1);
 
+        var clusterClasses = [];
+        for (i = 0; i < cluserTwoIdx.length; i++) {
+            clusterClasses.push(graph.nodes[cluserTwoIdx[i]].class)
+        }
+
+        var newClass = Math.min(...clusterClasses);
+        for (i = 0; i < cluserTwoIdx.length; i++) {
+            graph.nodes[cluserTwoIdx[i]].class = newClass;
+        }
+    }
 
 }
 
