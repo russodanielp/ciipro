@@ -169,18 +169,13 @@ function findAssocIdx(Z, n, length) {
 function merge(graph, n) {
 
 
-    for (i = 0; i < graph.nodes.length; i++) {
 
-        // graph.nodes[i].class = graph.nodes[i].index;
-        graph.nodes[i].prevClass = graph.nodes[i].class;
-    }
 
-    if (n > 0) {
+    if (n >= 0) {
 
         var assocIdx = findAssocIdx(graph.linkage, n, graph.nodes.length);
 
         var prevClasses = [];
-        console.log(assocIdx)
         for (index = 0; index < assocIdx.length; index++) {
             prevClasses.push(graph.nodes[assocIdx[index]].class);
         }
@@ -193,14 +188,7 @@ function merge(graph, n) {
 
     }
 
-        for (i = 0; i < graph.nodes.length; i++) {
-            if (graph.nodes[i].class != graph.nodes[i].prevClass) {
-                graph.nodes[i].isChanged = true;
-            } else {
-                graph.nodes[i].isChanged = false;
-            }
 
-    }
 
 }
 
@@ -212,7 +200,7 @@ function unmerge(graph, n) {
     if (cluserOneIdx < graph.nodes.length) {
             graph.nodes[cluserOneIdx].class = graph.nodes[cluserOneIdx].index
     } else {
-        cluserOneIdx = findAssocIdx(graph.linkage, cluserOneIdx-graph.nodes.length, graph.nodes.length+1);
+        cluserOneIdx = findAssocIdx(graph.linkage, cluserOneIdx-graph.nodes.length, graph.nodes.length);
 
         var clusterClasses = [];
         for (i = 0; i < cluserOneIdx.length; i++) {
@@ -228,7 +216,7 @@ function unmerge(graph, n) {
     if (cluserTwoIdx < graph.nodes.length) {
             graph.nodes[cluserTwoIdx].class = graph.nodes[cluserTwoIdx].index
     } else {
-        cluserTwoIdx = findAssocIdx(graph.linkage, cluserTwoIdx-graph.nodes.length, graph.nodes.length+1);
+        cluserTwoIdx = findAssocIdx(graph.linkage, cluserTwoIdx-graph.nodes.length, graph.nodes.length);
 
         var clusterClasses = [];
         for (i = 0; i < cluserTwoIdx.length; i++) {
@@ -249,29 +237,20 @@ function updateColors() {
     var fill = d3.scaleOrdinal(d3.schemeCategory20);
     nodes = d3.selectAll("circle");
 
+    nodes.data(graph.nodes);
+    nodes.filter(function(d) {
+      return d.isChanged;
+    }).transition().duration(1000)
+        .style("r", 16)
+        .transition().duration(750).style("fill", function (d) {return fill(d.class)})
+    .transition().duration(1000)
+        .style("r", 6)
 
-            nodes.data(graph.nodes)
-            nodes.filter(function(d) {
-              return d.isChanged;
-            }).transition().duration(1000)
-                .style("r", 16)
-                .transition().duration(750).style("fill", function (d) {return fill(d.class)})
-            .transition().duration(1000)
-                .style("r", 6)
 
 
 
 }
 
-function plotGraph() {
-    currentClustering = $("#cluster-selection").find(":selected").text().trim();
-
-
-    var queryUrl = $SCRIPT_ROOT + "get_adj_matrix/" + currentClustering;
-    graph = JSON.parse(getResponseFromURL(queryUrl));
-
-    networkGraph(graph);
-}
 
 
 function postData(url, data) {

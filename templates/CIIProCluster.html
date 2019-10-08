@@ -112,19 +112,21 @@
 </div>
 <script>
 
-    profileSelector = $("#profile-selection");
+    var profileSelector = $("#profile-selection");
 
-    currentClustering = $("#cluster-selection").find(":selected").text().trim();
+    var currentClustering = $("#cluster-selection").find(":selected").text().trim();
 
 
     var queryUrl = $SCRIPT_ROOT + "get_adj_matrix/" + currentClustering;
     var graph = JSON.parse(getResponseFromURL(queryUrl));
+    var sliderPreviousIdx = graph.nodes.length;
+    var maxClusters = graph.nodes.length;
 
     networkGraph(graph);
 
     refreshProfileClusterPage();
     changeClusteringName();
-    plotGraph();
+    networkGraph(graph);
 
     profileSelector.on("change", function() {
         refreshProfileClusterPage();
@@ -137,10 +139,16 @@
     $("#noClusters").text($("#cluster-slider").val());
 
     $("#cluster-selection").on("change", function() {
-        plotGraph();
 
-        var queryUrl = $SCRIPT_ROOT + "get_adj_matrix/" + currentClustering;
-        var graph = JSON.parse(getResponseFromURL(queryUrl));
+        currentClustering = $(this).val().trim();
+        queryUrl = $SCRIPT_ROOT + "get_adj_matrix/" + currentClustering;
+        graph = JSON.parse(getResponseFromURL(queryUrl));
+        console.log(graph);
+        sliderPreviousIdx = graph.nodes.length;
+        maxClusters = graph.nodes.length;
+        console.log(maxClusters)
+        networkGraph(graph);
+
         $("#cluster-slider").attr("max", graph.nodes.length);
         $("#cluster-slider").val(graph.nodes.length);
         $("#noClusters").text($("#cluster-slider").val());
@@ -149,12 +157,73 @@
 
 
 
+
+
+
+    function createClusters(currentIdx, prevIdx) {
+        // This is the main function for merging clusters as defined by the cluster-slider bar
+        // on the cluster page. It takes two parameters, the previous index (prevIdx) and the index to merge
+        // to (currentIdx).  The number of possible clusters are 1 - the number of nodes in the graph.
+
+        // special case of wanting to have each cluster independent.  if this is the case
+        // just define each cluster as its index.
+
+
+        for (i = 0; i < graph.nodes.length; i++) {
+
+            // graph.nodes[i].class = graph.nodes[i].index;
+            graph.nodes[i].prevClass = graph.nodes[i].class;
+        }
+
+
+
+        if (currentIdx == maxClusters) {
+            for (var idx = 0; idx < graph.nodes.length; idx++) {
+                graph.nodes[i].class = graph.nodes[i].index;
+            }
+        }
+
+        // if prevIdx is greater than currentIdx, it means the user wants to merge cluster.  Since the function
+        // merge() merges clusters at a given step, we need to call this function for each step from the previous
+        // index to the current index.  However, the indexes are off a bit.  merge(0) will merge the two closest nodes,
+        // results in n-1 clusters, so we need to reverse the the indices.
+        if (currentIdx < prevIdx) {
+            var startingIdx = maxClusters-prevIdx;
+            var endingIdx = maxClusters-currentIdx;
+            console.log(startingIdx, endingIdx);
+            for (var idx = startingIdx; idx < endingIdx; idx++) {
+                merge(graph, idx);
+            }
+
+        }
+
+        else if (currentIdx > prevIdx) {
+            var startingIdx = maxClusters-prevIdx;
+            var endingIdx = maxClusters-currentIdx;
+            console.log(startingIdx, endingIdx);
+            for (var idx = startingIdx; idx > endingIdx; idx--) {
+                unmerge(graph, idx);
+            }
+
+        }
+
+        for (i = 0; i < graph.nodes.length; i++) {
+            if (graph.nodes[i].class != graph.nodes[i].prevClass) {
+                graph.nodes[i].isChanged = true;
+            } else {
+                graph.nodes[i].isChanged = false;
+            }
+
+        }
+    }
+
+
     $("#cluster-slider").on("change", function() {
-        {#var queryUrl = $SCRIPT_ROOT + "get_adj_matrix/" + currentClustering;#}
-        {#graph = JSON.parse(getResponseFromURL(queryUrl));#}
-        merge(graph, graph.nodes.length-1-$(this).val());
-        updateColors();
+
+        createClusters($(this).val(), sliderPreviousIdx);
         $("#noClusters").text($("#cluster-slider").val());
+        sliderPreviousIdx = $(this).val()
+        updateColors();
     });
 
 
