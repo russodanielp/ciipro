@@ -82,10 +82,8 @@ class FPprofile:
 
 
         nodes = []
-        classes = 0
         for idx, aid in enumerate(X.index):
-            nodes.append({"id": int(aid), "name": int(aid), "class": classes})
-            classes = classes + 1
+            nodes.append({"id": int(aid), "name": int(aid)})
 
         links = []
 
@@ -118,6 +116,10 @@ class FPprofile:
         # get a new connectivity matrix with the singletons removed
 
         distances = squareform(con_matrix_no_singletons.values)
+
+        # add classes to the nodes
+        for i, node in enumerate(adj_matrix_new.nodes):
+            node["class"] = i
 
         Z = linkage(distances, method='single').tolist()
         adj_matrix_new.linkage = Z

@@ -143,10 +143,8 @@
         currentClustering = $(this).val().trim();
         queryUrl = $SCRIPT_ROOT + "get_adj_matrix/" + currentClustering;
         graph = JSON.parse(getResponseFromURL(queryUrl));
-        console.log(graph);
         sliderPreviousIdx = graph.nodes.length;
         maxClusters = graph.nodes.length;
-        console.log(maxClusters)
         networkGraph(graph);
 
         $("#cluster-slider").attr("max", graph.nodes.length);
@@ -169,7 +167,7 @@
         // just define each cluster as its index.
 
 
-        for (i = 0; i < graph.nodes.length; i++) {
+        for (var i = 0; i < graph.nodes.length; i++) {
 
             // graph.nodes[i].class = graph.nodes[i].index;
             graph.nodes[i].prevClass = graph.nodes[i].class;
@@ -179,7 +177,7 @@
 
         if (currentIdx == maxClusters) {
             for (var idx = 0; idx < graph.nodes.length; idx++) {
-                graph.nodes[i].class = graph.nodes[i].index;
+                graph.nodes[idx].class = graph.nodes[idx].index;
             }
         }
 
@@ -207,7 +205,7 @@
 
         }
 
-        for (i = 0; i < graph.nodes.length; i++) {
+        for (var i = 0; i < graph.nodes.length; i++) {
             if (graph.nodes[i].class != graph.nodes[i].prevClass) {
                 graph.nodes[i].isChanged = true;
             } else {

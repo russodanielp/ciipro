@@ -1,3 +1,14 @@
+function getRandomColor() {
+  var letters = '0123456789ABCDEF';
+  var color = '#';
+  for (var i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
+
+
+
 function changeClusteringName() {
     selector = $("#profile-selection");
     currentProfile = selector.find(":selected").text().trim();
@@ -38,6 +49,11 @@ function refreshProfileClusterPage() {
     updateMaxNoClusters(profile_data.meta.num_aids);
 }
 
+
+
+
+
+
 function networkGraph (graph) {
 
 
@@ -51,7 +67,13 @@ function networkGraph (graph) {
         radius = 6;
 
     // cluster colors
-    var fill = d3.scaleOrdinal(d3.schemeCategory20);
+    // fill = d3.scaleOrdinal(d3.schemeCategory20).domain([0, graph.nodes.length-1]);
+
+    fill = [];
+    for (i = 0; i < graph.nodes.length; i++) {
+            fill.push(getRandomColor());
+        }
+
 
     var svg = body.append("svg");
 
@@ -80,7 +102,9 @@ function networkGraph (graph) {
                 .data(graph.nodes)
       .enter().append("circle")
               .attr("r", radius)
-              .style("fill", function(d) { return fill(d.class); })
+              .style("fill", function(d) { console.log(d.class);
+                                          console.log(fill[d.class]);
+                                            return fill[d.class]; })
              .style("stroke", "#969696")
              .style("stroke-width", "1px")
              .attr("classLabel", function(d) { return d.class; })
@@ -234,15 +258,17 @@ function unmerge(graph, n) {
 
 function updateColors() {
 
-    var fill = d3.scaleOrdinal(d3.schemeCategory20);
+
+
+    // var fill = d3.scaleOrdinal(d3.schemeCategory20).domain([0, graph.nodes.length]);
     nodes = d3.selectAll("circle");
 
     nodes.data(graph.nodes);
     nodes.filter(function(d) {
-      return d.isChanged;
+      return true;
     }).transition().duration(1000)
         .style("r", 16)
-        .transition().duration(750).style("fill", function (d) {return fill(d.class)})
+        .transition().duration(750).style("fill", function (d) {return fill[d.class]})
     .transition().duration(1000)
         .style("r", 6)
 
