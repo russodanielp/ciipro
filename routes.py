@@ -1001,7 +1001,7 @@ def send_cluster_data():
                    "TP": "int", "FN": "int", "aid": "int", "TN": "int"}
 
     for col, conversion in conversions.items():
-        stats_frame[col] = stats_frame[col].astype(conversion)
+        stats_frame[col] = stats_frame[col].astype(eval(conversion))
 
     # remove previous clusters
 
