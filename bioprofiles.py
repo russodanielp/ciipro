@@ -38,7 +38,7 @@ class Bioprofile:
         json_data = {
             'name': self.name,
             'cids': [int(cid) for cid in self.cids],
-            'aids': [int(aid) for aid self.aids],
+            'aids': [int(aid) for aid in self.aids],
             'outcomes': [int(outcome) for outcome in self.outcomes],
             'stats': self.stats,
             'meta': self.meta
