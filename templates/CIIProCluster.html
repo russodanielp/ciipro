@@ -165,7 +165,7 @@
 
         // special case of wanting to have each cluster independent.  if this is the case
         // just define each cluster as its index.
-
+        console.log(currentIdx, prevIdx);
 
         for (var i = 0; i < graph.nodes.length; i++) {
 
@@ -173,38 +173,38 @@
             graph.nodes[i].prevClass = graph.nodes[i].class;
         }
 
-
-
         if (currentIdx == maxClusters) {
             for (var idx = 0; idx < graph.nodes.length; idx++) {
                 graph.nodes[idx].class = graph.nodes[idx].index;
             }
         }
+        else {
+            // if prevIdx is greater than currentIdx, it means the user wants to merge cluster.  Since the function
+            // merge() merges clusters at a given step, we need to call this function for each step from the previous
+            // index to the current index.  However, the indexes are off a bit.  merge(0) will merge the two closest nodes,
+            // results in n-1 clusters, so we need to reverse the the indices.
+            console.log(currentIdx < prevIdx)
+            if (currentIdx < prevIdx) {
+                console.log(currentIdx, prevIdx);
+                var startingIdx = maxClusters-prevIdx;
+                var endingIdx = maxClusters-currentIdx;
 
-        // if prevIdx is greater than currentIdx, it means the user wants to merge cluster.  Since the function
-        // merge() merges clusters at a given step, we need to call this function for each step from the previous
-        // index to the current index.  However, the indexes are off a bit.  merge(0) will merge the two closest nodes,
-        // results in n-1 clusters, so we need to reverse the the indices.
-        if (currentIdx < prevIdx) {
-            var startingIdx = maxClusters-prevIdx;
-            var endingIdx = maxClusters-currentIdx;
-            console.log(startingIdx, endingIdx);
-            for (var idx = startingIdx; idx < endingIdx; idx++) {
-                merge(graph, idx);
+                for (var idx = startingIdx; idx < endingIdx; idx++) {
+                    merge(graph, idx);
+                }
+
             }
 
-        }
+            else if (currentIdx > prevIdx) {
+                var startingIdx = maxClusters-prevIdx-1;
+                var endingIdx = maxClusters-currentIdx-1;
+                for (var idx = startingIdx; idx > endingIdx; idx--) {
+                    console.log(idx)
+                    unmerge(graph, idx);
+                }
 
-        else if (currentIdx > prevIdx) {
-            var startingIdx = maxClusters-prevIdx;
-            var endingIdx = maxClusters-currentIdx;
-            console.log(startingIdx, endingIdx);
-            for (var idx = startingIdx; idx > endingIdx; idx--) {
-                unmerge(graph, idx);
             }
-
         }
-
         for (var i = 0; i < graph.nodes.length; i++) {
             if (graph.nodes[i].class != graph.nodes[i].prevClass) {
                 graph.nodes[i].isChanged = true;
@@ -217,10 +217,9 @@
 
 
     $("#cluster-slider").on("change", function() {
-
-        createClusters($(this).val(), sliderPreviousIdx);
+        createClusters(+$(this).val(), +sliderPreviousIdx);
         $("#noClusters").text($("#cluster-slider").val());
-        sliderPreviousIdx = $(this).val()
+        sliderPreviousIdx = $(this).val();
         updateColors();
     });
 

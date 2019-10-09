@@ -220,18 +220,19 @@ function merge(graph, n) {
 function unmerge(graph, n) {
     var cluserOneIdx = graph.linkage[n][0];
     var cluserTwoIdx = graph.linkage[n][1];
-
+    console.log(cluserOneIdx, cluserTwoIdx)
     if (cluserOneIdx < graph.nodes.length) {
             graph.nodes[cluserOneIdx].class = graph.nodes[cluserOneIdx].index
     } else {
         cluserOneIdx = findAssocIdx(graph.linkage, cluserOneIdx-graph.nodes.length, graph.nodes.length);
+        console.log(cluserOneIdx)
+        // var clusterClasses = [];
+        // for (i = 0; i < cluserOneIdx.length; i++) {
+        //     clusterClasses.push(graph.nodes[cluserOneIdx[i]].class)
+        // }
 
-        var clusterClasses = [];
-        for (i = 0; i < cluserOneIdx.length; i++) {
-            clusterClasses.push(graph.nodes[cluserOneIdx[i]].class)
-        }
-
-        var newClass = Math.min(...clusterClasses);
+        var newClass = Math.min(...cluserOneIdx);
+        console.log(newClass);
         for (i = 0; i < cluserOneIdx.length; i++) {
             graph.nodes[cluserOneIdx[i]].class = newClass;
         }
@@ -241,13 +242,13 @@ function unmerge(graph, n) {
             graph.nodes[cluserTwoIdx].class = graph.nodes[cluserTwoIdx].index
     } else {
         cluserTwoIdx = findAssocIdx(graph.linkage, cluserTwoIdx-graph.nodes.length, graph.nodes.length);
+        console.log(cluserTwoIdx)
+        // var clusterClasses = [];
+        // for (i = 0; i < cluserTwoIdx.length; i++) {
+        //     clusterClasses.push(graph.nodes[cluserTwoIdx[i]].class)
+        // }
 
-        var clusterClasses = [];
-        for (i = 0; i < cluserTwoIdx.length; i++) {
-            clusterClasses.push(graph.nodes[cluserTwoIdx[i]].class)
-        }
-
-        var newClass = Math.min(...clusterClasses);
+        var newClass = Math.min(...cluserTwoIdx);
         for (i = 0; i < cluserTwoIdx.length; i++) {
             graph.nodes[cluserTwoIdx[i]].class = newClass;
         }
@@ -265,7 +266,7 @@ function updateColors() {
 
     nodes.data(graph.nodes);
     nodes.filter(function(d) {
-      return true;
+      return d.isChanged;
     }).transition().duration(1000)
         .style("r", 16)
         .transition().duration(750).style("fill", function (d) {return fill[d.class]})
