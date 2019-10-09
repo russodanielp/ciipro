@@ -300,16 +300,14 @@ function postData(url, data) {
 function sendClusterData() {
     // all the circles on the HTML should be PubChem AIDs
 
-    nodes = $("circle");
-
     var results = {};
     results.clusterAssignments = [];
 
-    for (i = 0; i < nodes.length; i++) {
+    for (i = 0; i < graph.nodes.length; i++) {
         var data = {};
 
-        data.aid = +$(nodes[i]).attr("AID");
-        data.classLabel = +$(nodes[i]).attr("classLabel");
+        data.aid = +graph.nodes[i].id;
+        data.classLabel = +graph.nodes[i].class;
 
         results.clusterAssignments.push(data);
     }
@@ -319,7 +317,7 @@ function sendClusterData() {
     data = {
         results: results
     }
-
+    console.log(data);
     postData('/sendClusterData', data);
 
 }
