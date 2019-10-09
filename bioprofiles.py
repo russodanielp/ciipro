@@ -37,9 +37,9 @@ class Bioprofile:
     def to_json(self, write_dir):
         json_data = {
             'name': self.name,
-            'cids': self.cids,
-            'aids': self.aids,
-            'outcomes': self.outcomes,
+            'cids': [int(cid) for cid in self.cids],
+            'aids': [int(aid) for aid self.aids],
+            'outcomes': [int(outcome) for outcome in self.outcomes],
             'stats': self.stats,
             'meta': self.meta
         }
