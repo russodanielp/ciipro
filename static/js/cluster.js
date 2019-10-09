@@ -316,7 +316,7 @@ function sendClusterData() {
 
     data = {
         results: results
-    }
+    };
     console.log(data);
     postData('/sendClusterData', data);
 
