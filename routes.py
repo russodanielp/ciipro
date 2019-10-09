@@ -1016,6 +1016,10 @@ def send_cluster_data():
         sub_frame = main_frame.loc[clstr_aids]
         sub_stats = stats_frame.loc[clstr_aids]
 
+        for col, conversion in conversions.items():
+            sub_stats[col] = sub_stats[col].astype(eval(conversion))
+
+
         aids = sub_frame.index.astype(int).tolist()
         cids = sub_frame.cids.astype(int).tolist()
         outcomes = sub_frame.outcomes.astype(int).tolist()
