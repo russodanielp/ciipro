@@ -1000,7 +1000,8 @@ def send_cluster_data():
                    "L parameter": "float", "Sensitivity": "float", "PPV": "float", "NPV": "float",
                    "TP": "int", "FN": "int", "aid": "int", "TN": "int"}
 
-    # stats_frame.astype(conversions)
+    for col, conversion in conversions.items():
+        stats_frame[col] = stats_frame[col].astype(conversion)
 
     # remove previous clusters
 
