@@ -1018,7 +1018,7 @@ def send_cluster_data():
 
         aids = sub_frame.index.tolist()
         cids = sub_frame.cids.tolist()
-        outcomes = sub_frame.outcomes.tolist()
+        outcomes = sub_frame.outcomes.astype(int).tolist()
         stats = sub_stats.to_dict('records')
         name = '{}_cluster_{}'.format(profile.name, clst)
 
