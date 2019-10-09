@@ -110,11 +110,11 @@ function networkGraph (graph) {
              .attr("classLabel", function(d) { return d.class; })
              .attr("id", function(d) { return "AID" + d.id; })
              .attr("AID", function(d) { return d.id; })
-              // .call(d3.drag()
-              //     .on("start", dragstarted)
-              //     .on("drag", dragged)
-              //     .on("end", dragended)
-              // );
+              .call(d3.drag()
+                  .on("start", dragstarted)
+                  .on("drag", dragged)
+                  .on("end", dragended)
+              );
 
       var label = svg.append("g")
           .attr("class", "labels")
