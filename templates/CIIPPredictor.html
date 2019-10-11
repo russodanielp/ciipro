@@ -94,11 +94,10 @@
                               <table class="table table-bordered table-striped mb-0">
                                 <thead>
                                   <tr>
-                                      <th scope="row" id="test-cmp-header">{{ data|length }} Test Compounds</th>
-                                      <th scope="row" id="BioNN">Bio NNs</th>
-                                      <th scope="row" id="BioNN-pred">Bio-Prediction</th>
-                                      <th scope="row" id="ChemNN">Chem NNs</th>
-                                      <th scope="row" id="ChemNN-pred">Chem-Prediction</th>
+                                      <th scope="row" id="test-cmp-header">{{ data|length }} Test Compound</th>
+                                      <th scope="row" id="Acts">No. Actives in Profile</th>
+                                      <th scope="row" id="Inacts">No. Actives in Profile</th>
+                                      <th scope="row" id="Prediction">Prediction</th>
                                   </tr>
                                 </thead>
                                 <tbody>
@@ -108,30 +107,16 @@
                                       <th scope="row" id="{{ datum.cid }}">
                                           <a href="https://pubchem.ncbi.nlm.nih.gov/compound/{{ datum.cid }}"
                                              target="_blank">{{ datum.cid }}</a></th>
-                                    <td id="{{ datum.cid }}-bionns">
-                                        {% for bionn in datum.bionn %}
-                                        <a href="https://pubchem.ncbi.nlm.nih.gov/compound/{{ bionn }}" target="_blank">
-                                        {{ bionn }}&nbsp
-                                        </a>
-                                        {% endfor %}
+                                    <td id="{{ datum.acts }}-Acts">
+                                        {{ datum.acts }}
                                     </td>
-                                    <td>
-                                        <biopred id="pred-bionns">
-                                        {{ datum.bioPred }}
-                                        </biopred>
+                                    <td id="{{ datum.inacts }}-Inacts">
+                                        {{ datum.inacts }}
                                     </td>
-                                    <td id="{{ datum.cid }}-chemnns">
-                                        {% for chemnn in datum.chemnn %}
-                                        <a href="https://pubchem.ncbi.nlm.nih.gov/compound/{{ chemnn }}" target="_blank">
-                                        {{ chemnn }}&nbsp
-                                        </a>
-                                        {% endfor %}
+                                    <td id="{{ datum.pred }}-Prediction">
+                                        {{ datum.pred }}
                                     </td>
-                                     <td>
-                                        <chemnns id="pred-chemnns">
-                                        {{ datum.chemPred }}
-                                        </chemnns>
-                                     </td>
+
                                   </tr>
 
                                 {% endfor %}

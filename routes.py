@@ -658,125 +658,63 @@ def CIIPPredict():
         profile_filename = request.form['profile_filename']
         compound_filename = request.form['compound_filename']
 
-        biosim_cutoff = float(request.form['cutoff'])
-        conf_cutoff = float(request.form['conf'])
-        nn_cutoff = float(request.form['nns'])
-
-        training_profile = g.user.load_bioprofile(profile_filename)
-
-        training_matrix = training_profile.to_frame()
-
-        training_data = g.user.load_dataset(training_profile.meta['training_set'])
-
-        test_data = g.user.load_dataset(compound_filename)
-
-
-
-        # get a full test set profile
-
-        test_profile_json = test_data.get_bioprofile()
-
-        # I guess since a lot of these dont get used might be better to
-        # create two classes one for training profiles and one for test
-        test_profile = bp.Bioprofile(None,
-                                     test_profile_json['cids'],
-                                     test_profile_json['aids'],
-                                     test_profile_json['outcomes'],
-                                     None,
-                                     None)
-
-        test_matrix = test_profile.to_frame()
-
-        # only use the intersection of the test profile and the training profile
-        shared_assays = training_matrix.columns.intersection(test_matrix.columns)
-
-        # TODO: Need to come up with an error if no test compounds have assays in the training profile
-
-        # align both axis
-        test_matrix = test_matrix.loc[:, shared_assays]
-        training_matrix = training_matrix.loc[:, shared_assays]
-
-
-
-        trainin_activites = training_data.get_activities(use_cids=True)
-        trainin_activites = trainin_activites[training_matrix.index]
-
-        # currently weight is ratio of actives:inactives in training profile
-        # but never have it above 1
-        # TODO: add this as a paramater to let users choose
-
-        act_to_inact_ratio =(training_matrix == 1).sum().sum() / (training_matrix == -1).sum().sum()
-
-        inact_weight = act_to_inact_ratio if act_to_inact_ratio <= 1 else 1
-
-        biodis, conf = biosim.biosimilarity_distances(test_matrix.values,
-                                                      training_matrix.values,
-                                                      weight=inact_weight)
-
-        biosimilarity = 1-biodis
-
-        bio_nns = biosim.get_k_bioneighbors(biosimilarity, conf,
-                                        k=nn_cutoff,
-                                        biosim_cutoff=biosim_cutoff,
-                                        conf_cutoff=conf_cutoff)
-
-        train_fps = training_data.get_pubchem_fps()
-        test_fps = test_data.get_pubchem_fps()
-
-        # make sure axis are aligned
-        train_fps = train_fps.loc[training_matrix.index]
-        test_fps = test_fps.loc[test_matrix.index]
+        # biosim_cutoff = float(request.form['cutoff'])
+        # conf_cutoff = float(request.form['conf'])
+        # nn_cutoff = float(request.form['nns'])
+        #
+        # training_profile = g.user.load_bioprofile(profile_filename)
+        #
+        # training_matrix = training_profile.to_frame()
+        #
+        # training_data = g.user.load_dataset(training_profile.meta['training_set'])
+        #
+        # test_data = g.user.load_dataset(compound_filename)
+        #
+        #
+        #
+        # # get a full test set profile
+        #
+        # test_profile_json = test_data.get_bioprofile()
+        #
+        # # I guess since a lot of these dont get used might be better to
+        # # create two classes one for training profiles and one for test
+        # test_profile = bp.Bioprofile(None,
+        #                              test_profile_json['cids'],
+        #                              test_profile_json['aids'],
+        #                              test_profile_json['outcomes'],
+        #                              None,
+        #                              None)
+        #
+        # test_matrix = test_profile.to_frame()
+        #
+        # # only use the intersection of the test profile and the training profile
+        # shared_assays = training_matrix.columns.intersection(test_matrix.columns)
+        #
+        # # TODO: Need to come up with an error if no test compounds have assays in the training profile
+        #
+        # # align both axis
+        # test_matrix = test_matrix.loc[:, shared_assays]
+        # training_matrix = training_matrix.loc[:, shared_assays]
+        #
+        #
+        #
+        # trainin_activites = training_data.get_activities(use_cids=True)
+        # trainin_activites = trainin_activites[training_matrix.index]
+        #
+        # bionns_sorted = biosim.sort_by_bioactivity(test_matrix.values, training_matrix.values)
+        #
 
 
-        # now get chem similarity
-        chemdis = biosim.chem_distances(test_fps.values, train_fps.values)
-        chemsim = 1-chemdis
-        chem_nns = biosim.get_k_chem_neighbors(chemsim, k=nn_cutoff)
-
-        # now package is all up in a json ob
-
-        data = []
-
-        for i, test_cmp in enumerate(test_matrix.index):
-
-            test_cmp_data = {}
-            test_cmp_data["cid"] = int(test_cmp)
-            test_cmp_data['bionn'] = list(map(int, training_matrix.index[bio_nns[i]]))
-            test_cmp_data['bioSims'] = list(map(float, biosimilarity[i, bio_nns[i]]))
-            test_cmp_data['bioConf'] = list(map(float, conf[i, bio_nns[i]]))
-            test_cmp_data['bioPred'] = float(trainin_activites[training_matrix.index[bio_nns[i]]].mean())
-
-            test_cmp_data['chemnn'] = list(map(int, training_matrix.index[chem_nns[i]]))
-            test_cmp_data['chemSims'] = list(map(float, chemsim[i, chem_nns[i]]))
-            test_cmp_data['chemPred'] = float(trainin_activites[training_matrix.index[chem_nns[i]]].mean())
-            data.append(test_cmp_data)
+        data = [
+            {"cid": 2244, "acts": 4, "inacts": 19, "pred":1},
+            {"cid": 2246, "acts": 13, "inacts": 27, "pred":1},
+            {"cid": 1244, "acts": 25, "inacts": 23, "pred":0},
+            {"cid": 2245, "acts": 9, "inacts": 31, "pred":1}
+        ]
 
 
-        biopreds = pd.Series([data_dic["bioPred"] for data_dic in data],
-                             index=[data_dic["cid"] for data_dic in data])
-
-        chempreds = pd.Series([data_dic["chemPred"] for data_dic in data],
-                             index=[data_dic["cid"] for data_dic in data])
-
-
-        hybridpreds = (biopreds + chempreds) / 2
-        hybridpreds = hybridpreds.apply(np.ceil)
-
-        y_test = test_data.get_activities(use_cids=True).loc[biopreds.index]
-
-        chem_stats = [{"metric": metric, "value": round(value, 2)}
-                      for metric, value in get_class_stats(chempreds, y_test).items()]
-        bio_stats = [{"metric": metric, "value": round(value, 2)}
-                      for metric, value in get_class_stats(biopreds, y_test).items()]
-        hybrid_stats = [{"metric": metric, "value": round(value, 2)}
-                      for metric, value in get_class_stats(hybridpreds, y_test).items()]
-
-
-        stats = [bio_stats, chem_stats, hybrid_stats]
-        print(stats)
         return render_template('CIIPPredictor.html', profiles=g.user.get_user_bioprofiles(),
-                               testsets=g.user.get_user_datasets(set_type='test'),
-                               data=data, stats=stats)
+                               testsets=g.user.get_user_datasets(set_type='test'), data=data)
 
 
 
