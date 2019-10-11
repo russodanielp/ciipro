@@ -106,7 +106,43 @@ def get_k_chem_neighbors(similarities, k=1):
         new.append(new_row[:k])
     return np.array(new)
 
-    return NNs[:, k]
+
+def sort_by_bioactivity(X, X_, weight=0.1, k=5):
+    """
+        This function will take two matrices, both with bioactivity responses
+
+    """
+
+    # TODO: find a cleaner way to do this
+
+    X_new = np.concatenate([X, X_])
+
+    positives = X_new.copy()
+    positives[X_new == -1] = 0
+
+    negatives = X_new.copy()
+    negatives[X_new == 1] = 0
+
+
+    weighted_negatives = negatives * weight
+
+    shared_pos = positives.dot(positives.T)
+    shared_neg = negatives.dot(weighted_negatives.T)
+
+    total_shared_repsonses = shared_pos + shared_neg
+
+    total_shared_repsonses = total_shared_repsonses[:len(X), len(X):]
+    print(total_shared_repsonses)
+
+    sorted_by_shared = np.fliplr(np.argsort(total_shared_repsonses))
+
+    new = []
+    for i, row in enumerate(sorted_by_shared):
+
+        # new row is a 1-D array of NN indices in descending order
+        new_row = row.copy()
+        new.append(new_row[:k])
+    return np.array(new)
 
 
 
@@ -117,28 +153,20 @@ if __name__ == '__main__':
     from bioprofiles import Bioprofile
     from datasets import DataSet
 
-    training_profile = Bioprofile.from_json(r'D:\ciipro\Guest\profiles\a_er.json')
+    training_profile = Bioprofile.from_json(r'D:\ciipro\Guest\profiles\a_er_dataset.json')
 
     training_matrix = training_profile.to_frame()
 
-    training_data = DataSet.from_json(r'D:\ciipro\Guest\datasets\ER_train_can.json')
+    # training_data = DataSet.from_json(r'D:\ciipro\Guest\datasets\ER_train_can.json')
+    #
+    # test_data = DataSet.from_json(r'D:\ciipro\Guest\datasets\ER_test_can.json')
 
-    test_data = DataSet.from_json(r'D:\ciipro\Guest\datasets\ER_test_can.json')
-
-    # get a full test set profile
-    print(training_data, test_data)
-    test_profile_json = test_data.get_bioprofile()
-
+    training_pmatrix = training_profile.to_frame()
     # I guess since a lot of these dont get used might be better to
     # create two classes one for training profiles and one for test
-    test_profile = Bioprofile('test',
-                                 test_profile_json['cids'],
-                                 test_profile_json['aids'],
-                                 test_profile_json['outcomes'],
-                                 None,
-                                 None)
+    test_matrix = training_profile.to_frame()
 
-    test_matrix = test_profile.to_frame()
+
 
 
     # only use the intersection of the test profile and the training profile
@@ -147,23 +175,28 @@ if __name__ == '__main__':
     test_matrix = test_matrix.loc[:, shared_assays]
     training_matrix = training_matrix.loc[:, shared_assays]
 
-    test_matrix.replace(0, 1, inplace=True)
-    training_matrix.replace(0, 1, inplace=True)
 
-    biodis, conf = biosimilarity_distances(test_matrix.values, training_matrix.values)
-    biosim = 1-biodis
+    results = sort_by_bioactivity(test_matrix.values, training_matrix.values)
 
-    nns_arr = get_k_bioneighbors(biosim, conf, biosim_cutoff=0.5, conf_cutoff=0.5)
+    print(results)
 
-
-
-    test_fps = test_data.get_pubchem_fps()
-    train_fps = training_data.get_pubchem_fps()
-
-    chem_dis = chem_distances(test_fps, train_fps)
-    chem_nns = get_k_chem_neighbors(1-chem_dis)
-
-    for i, chem_nn in enumerate(chem_nns):
-        print(test_fps.index[i], train_fps.index[chem_nn[0]])
+    # test_matrix.replace(0, 1, inplace=True)
+    # training_matrix.replace(0, 1, inplace=True)
+    #
+    # biodis, conf = biosimilarity_distances(test_matrix.values, training_matrix.values)
+    # biosim = 1-biodis
+    #
+    # nns_arr = get_k_bioneighbors(biosim, conf, biosim_cutoff=0.5, conf_cutoff=0.5)
+    #
+    #
+    #
+    # test_fps = test_data.get_pubchem_fps()
+    # train_fps = training_data.get_pubchem_fps()
+    #
+    # chem_dis = chem_distances(test_fps, train_fps)
+    # chem_nns = get_k_chem_neighbors(1-chem_dis)
+    #
+    # for i, chem_nn in enumerate(chem_nns):
+    #     print(test_fps.index[i], train_fps.index[chem_nn[0]])
 
 
