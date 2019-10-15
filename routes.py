@@ -718,22 +718,15 @@ def CIIPPredict():
 
 
 
-@app.route('/similarity<cid>', methods=['GET', 'POST'])
+@app.route('/read-across/<cid>', methods=['GET', 'POST'])
 @login_required
-def similarity(cid):
-    USER_FOLDER = CIIProConfig.UPLOAD_FOLDER + '/' + g.user.username
-    USER_TEST_SET_FOLDER = USER_FOLDER +'/test_sets'
-    USER_NN_FOLDER = USER_FOLDER + '/NNs'
-    
-    df = nn_to_pandas(USER_NN_FOLDER + '/' + session['test_set'] + '/' + str(cid) + '.csv')
-    #sim_graph = createSimilarityGraph(int(cid), df,  int(session['nns']))
-    sim_graph_pic = sim_graph(int(cid), df, int(session['nns']), int(session['max_conf']))
-    #cids = session['cids']
-    #preds = session['preds']
-    #acts = session['acts']
-    #len_cids = len(cids)
+def read_across(cid):
+    # get currnet bioassay information
+
+    # get bioassays information for target cid
+    data = cid
        
-    return render_template('similarity.html', sim_graph=sim_graph_pic)
+    return render_template('read-across.html', data=data)
 
 
 @app.route('/CIIProTools', methods=['GET', 'POST']) 

@@ -98,6 +98,7 @@
                                       <th scope="row" id="Acts">No. Actives in Profile</th>
                                       <th scope="row" id="Inacts">No. Actives in Profile</th>
                                       <th scope="row" id="Prediction">Prediction</th>
+                                      <th scope="row" id="Read-across">Read-across Results</th>
                                   </tr>
                                 </thead>
                                 <tbody>
@@ -116,6 +117,11 @@
                                     <td id="{{ datum.pred }}-Prediction">
                                         {{ datum.pred }}
                                     </td>
+
+                                      <td id="read-across-{{ datum.cid }}">
+                                          <a href="/read-across/{{ datum.cid }}"
+                                             target="_blank">View Read-Across Results</a></td>
+
 
                                   </tr>
 
