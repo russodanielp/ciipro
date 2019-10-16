@@ -165,8 +165,6 @@ function aidStackedBar(data){
       width = currentWidth - margin.left - margin.right,
       height = 750 - margin.top - margin.bottom;
 
-    console.log(currentWidth);
-    console.log(width);
 
     // append the svg object to the body of the page
     var svg = d3.select("#stackedBar")

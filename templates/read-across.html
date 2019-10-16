@@ -2,9 +2,24 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title> Read Across {{ data.target }}  </title>
+
+    <script src="https://d3js.org/d3.v4.js"></script>
+    <script src="{{ url_for('static', filename='js/readacross.js') }}"></script>
+
+
 </head>
 <body>
 
+    <div id="graph"></div>
+
 </body>
+
+    <script>
+
+        var profile = {{ data.training_profile  | tojson | safe }}
+        console.log(profile);
+        readAcrossGraph(profile);
+    </script>
+
 </html>

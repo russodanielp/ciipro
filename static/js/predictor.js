@@ -18,3 +18,14 @@ function addPredictorToolButton() {
             dropdownDiv.append(button);
             dropdownDiv.append(dropdown);
 }
+
+function openReadAcross(cid, profile) {
+    // function that uses fetch model to send the current filters to the flask function
+
+    var url = "/read-across/" + cid + "/" + profile;
+
+    window.open(url);
+
+
+};
+

@@ -718,14 +718,52 @@ def CIIPPredict():
 
 
 
-@app.route('/read-across/<cid>', methods=['GET', 'POST'])
+@app.route('/read-across/<cid>/<profile>', methods=['GET', 'POST'])
 @login_required
-def read_across(cid):
+def read_across(cid, profile):
     # get currnet bioassay information
 
     # get bioassays information for target cid
-    data = cid
-       
+
+    training_profile = g.user.load_bioprofile(profile)
+
+    training_matrix = training_profile.to_frame()
+    test_matrix = training_matrix.copy()
+
+    results = biosim.sort_by_bioactivity(test_matrix.iloc[1:2, :].values,
+                                         training_matrix.values,
+                                         k=5)
+
+    nns_matrix = training_matrix.iloc[results[0]]
+
+    full_matrix = pd.concat([test_matrix.iloc[1:2, :], nns_matrix])
+
+    print(full_matrix)
+
+    nns_profile = bp.Bioprofile.from_frame('nns',
+                                           full_matrix,
+                                           None,
+                                           None)
+
+    target_profile = bp.Bioprofile.from_frame(cid,
+                                              test_matrix.iloc[1:2, :],
+                                              None,
+                                              None)
+
+    data = {
+        'training_profile': {
+            'cids': nns_profile.cids,
+            'aids': nns_profile.aids,
+            'outcomes': nns_profile.outcomes,
+        },
+        'target': cid,
+        'target_profile': {
+            'cids': target_profile.cids,
+            'aids': target_profile.aids,
+            'outcomes': target_profile.outcomes
+        }
+    }
+
     return render_template('read-across.html', data=data)
 
 
@@ -742,31 +780,6 @@ def CIIProTools():
     return render_template('CIIProTools.html', datasets=g.user.get_user_datasets(set_type='training'), 
                            username=g.user.username)	
 
-@app.route('/activitycliffs', methods=['GET', 'POST']) 
-@login_required
-def activitycliffs():
-    """ Method Identifies Activity Cliffs in training set
-    
-    """
-
-    USER_COMPOUND_FOLDER = CIIProConfig.UPLOAD_FOLDER + '/' + g.user.username + '/compounds'
-    datasets = [dataset for dataset in os.listdir(USER_COMPOUND_FOLDER)]
-    compound_filename = request.form['compound_filename']
-    compound_filename = str(compound_filename)
-    compound_directory = USER_COMPOUND_FOLDER + '/' + compound_filename
-    
-    df = activity_cliffs(compound_directory)
-    #df.to_csv(compound_directory.replace('compounds', NNs), sep='\t')
-    #cliff = cliffTable_bokeh(df)
-    df.index.name = 'Target_CID'
-        
-    writer = pd.ExcelWriter(compound_directory.replace('compounds', 'NNs').replace('.txt', '.xlsx'))
-    df.to_excel(writer, sheet_name='Activity Cliffs')
-    writer.save()
-    session['cur_ciff_dir'] = compound_directory.replace('compounds', 'NNs').replace('.txt', '.xlsx')
-        
-    return render_template('CIIProTools.html', datasets=g.user.get_user_datasets(set_type='training'), 
-                           username=g.user.username, ac=df.to_html())	
 
 
 @app.route('/sendtutorial')

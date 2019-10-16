@@ -41,7 +41,7 @@
                           {% if testsets %}
                             <div class="form-group">
                               <label for="sel1">Select dataset:</label>
-                              <select class="form-control" id="sel1" name="compound_filename">
+                              <select class="form-control" id="compound_filename" name="compound_filename">
                                 {% for testset in testsets %}
                                     <option value="{{ testset }}"> {{ testset }}</option>
                                 {% endfor %}
@@ -61,7 +61,7 @@
                         <div class="row">
                             <div class="col-sm-4">
                                 <label for="">Inactive weights:</label>
-                                <input  type="text" class="form-control" name="inactives">
+                                <input  type="text" class="form-control" id="inactives" name="inactives">
 
 						        </input>
 					        </div>
@@ -98,7 +98,7 @@
                                       <th scope="row" id="Acts">No. Actives in Profile</th>
                                       <th scope="row" id="Inacts">No. Actives in Profile</th>
                                       <th scope="row" id="Prediction">Prediction</th>
-                                      <th scope="row" id="Read-across">Read-across Results</th>
+                                      <th scope="row" id="Read-across">Read-Across Results</th>
                                   </tr>
                                 </thead>
                                 <tbody>
@@ -118,9 +118,8 @@
                                         {{ datum.pred }}
                                     </td>
 
-                                      <td id="read-across-{{ datum.cid }}">
-                                          <a href="/read-across/{{ datum.cid }}"
-                                             target="_blank">View Read-Across Results</a></td>
+                                      <td style="cursor:pointer;" class="read-across" id="read-across-{{ datum.cid }}" cid={{ datum.cid }}>
+                                          View Read-Across Results</td>
 
 
                                   </tr>
@@ -135,44 +134,6 @@
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-sm-4">
-                    <div class="card shadow p-3 mb-5 bg-white rounded">
-                        <div class="card-body" id="stats-body">
-                            <h5 class="card-title">Bio-prediction Statistics</h5>
-                            <div id="bio-stats">
-
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-sm-4">
-                    <div class="card shadow p-3 mb-5 bg-white rounded">
-                        <div class="card-body">
-                            <h5 class="card-title">Chem-prediction Statistics</h5>
-                            <div id="chem-stats">
-
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-sm-4">
-                    <div class="card shadow p-3 mb-5 bg-white rounded">
-                        <div class="card-body">
-                            <h5 class="card-title">Hybrid-prediction Statistics</h5>
-                            <div id="hybrid-stats">
-
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-
-            </div>
         </div>
 
         {% endif %}
@@ -182,10 +143,22 @@
 
 <script>
 
+
+
+
+    $('.read-across').click(function() {
+        var cid = +$(this).attr("cid");
+        var currentProfile = $( "#profile-selection option:selected" ).val();
+
+        openReadAcross(cid, currentProfile);
+
+    });
+
     // if the stats results div exists, that means the submit button
     // has already been used, so we populate the action button for this
     // page
     var statsResults = $("#stats-results");
+
 
     if (statsResults.length != 0) {
         addPredictorToolButton();

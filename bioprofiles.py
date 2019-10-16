@@ -93,6 +93,31 @@ class Bioprofile:
                    json_data['stats'],
                    json_data['meta'])
 
+    @classmethod
+    def from_frame(cls, name, dataframe, stats, meta):
+
+        cids = []
+        aids = []
+        outcomes = []
+
+        for row in range(len(dataframe.index)):
+            for col in range(len(dataframe.columns)):
+                outcome = dataframe.iloc[row, col]
+                if outcome != 0:
+                    outcomes.append(int(outcome))
+                    cids.append(int(dataframe.index[row]))
+                    aids.append(int(dataframe.columns[col]))
+
+
+
+        return cls(name,
+                   cids,
+                   aids,
+                   outcomes,
+                   stats,
+                   meta)
+
+
 if __name__ == '__main__':
     import pandas as pd
 
