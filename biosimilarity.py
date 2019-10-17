@@ -132,7 +132,6 @@ def sort_by_bioactivity(X, X_, weight=0.1, k=5):
     total_shared_repsonses = shared_pos + shared_neg
 
     total_shared_repsonses = total_shared_repsonses[:len(X), len(X):]
-    print(total_shared_repsonses)
 
     sorted_by_shared = np.fliplr(np.argsort(total_shared_repsonses))
 
