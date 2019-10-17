@@ -1000,7 +1000,8 @@ def send_cluster_data():
                    "L parameter": "float", "Sensitivity": "float", "PPV": "float", "NPV": "float",
                    "TP": "int", "FN": "int", "aid": "int", "TN": "int"}
 
-    stats_frame.astype(conversions)
+    for col, conversion in conversions.items():
+        stats_frame[col] = stats_frame[col].astype(eval(conversion))
 
     # remove previous clusters
 
@@ -1009,17 +1010,25 @@ def send_cluster_data():
     for json_file in previous_files:
         os.remove(json_file)
 
-    for clst, clstr_data in grouped_by_cluster:
+    sorted_groups = sorted(grouped_by_cluster, key=lambda data: len(data[1]), reverse=True)
+
+    new_cluster_id = 0
+
+    for clst, clstr_data in sorted_groups:
         clstr_aids = clstr_data.aid.tolist()
 
         sub_frame = main_frame.loc[clstr_aids]
         sub_stats = stats_frame.loc[clstr_aids]
 
-        aids = sub_frame.index.tolist()
-        cids = sub_frame.cids.tolist()
-        outcomes = sub_frame.outcomes.tolist()
+        for col, conversion in conversions.items():
+            sub_stats[col] = sub_stats[col].astype(eval(conversion))
+
+
+        aids = sub_frame.index.astype(int).tolist()
+        cids = sub_frame.cids.astype(int).tolist()
+        outcomes = sub_frame.outcomes.astype(int).tolist()
         stats = sub_stats.to_dict('records')
-        name = '{}_cluster_{}'.format(profile.name, clst)
+        name = '{}_cluster_{}'.format(profile.name, new_cluster_id)
 
         meta = {"num_cmps": len(cids),
                 "num_total_actives": int((sub_frame['outcomes'] == 1).sum()),
@@ -1031,7 +1040,10 @@ def send_cluster_data():
 
         sub_profile.to_json(g.user.get_user_folder('profiles'))
 
+        new_cluster_id = new_cluster_id + 1
+
     return 'OK', 200
+
 
 
 @login_required
