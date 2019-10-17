@@ -80,13 +80,21 @@ function networkGraph (graph) {
     svg.attr("width", width);
     svg.attr("height", height);
 
-    var simulation = d3.forceSimulation()
+    simulation = d3.forceSimulation()
         .force("link", d3.forceLink().id(function(d) { return d.id; })
                                      .distance(100)
                                      // .strength(function(d) { return 1-d.weight; })
         )
         .force("charge", d3.forceManyBody())
         .force("center", d3.forceCenter(width / 2, height / 2));
+
+
+    // set this variable so we can call check to see if it is running in
+    // the changeSimulationState() function
+
+    simulationIsRunning = true;
+    $("#simulationButton").addClass("btn-danger");
+    $("#simulationButton").val("Stop Simulation");
 
 
 
@@ -102,9 +110,7 @@ function networkGraph (graph) {
                 .data(graph.nodes)
       .enter().append("circle")
               .attr("r", radius)
-              .style("fill", function(d) { console.log(d.class);
-                                          console.log(fill[d.class]);
-                                            return fill[d.class]; })
+              .style("fill", function(d) { return fill[d.class]; })
              .style("stroke", "#969696")
              .style("stroke-width", "1px")
              .attr("classLabel", function(d) { return d.class; })
@@ -167,7 +173,21 @@ function networkGraph (graph) {
         }
 }
 
-
+function changeSimulationState() {
+    if (simulationIsRunning == true) {
+        simulation.stop();
+        simulationIsRunning = false;
+        $("#simulationButton").removeClass("btn-danger");
+        $("#simulationButton").addClass("btn-success");
+        $("#simulationButton").val("Restart Simulation");
+    } else {
+        simulation.restart();
+        simulationIsRunning = true;
+        $("#simulationButton").removeClass("btn-success");
+        $("#simulationButton").addClass("btn-danger");
+        $("#simulationButton").val("Stop Simulation");
+    }
+}
 
 function findMinIdx(Z, n, length) {
     if (Z[n][0] >= length) {
