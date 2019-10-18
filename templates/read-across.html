@@ -6,12 +6,21 @@
 
     <script src="https://d3js.org/d3.v4.js"></script>
     <script src="{{ url_for('static', filename='js/readacross.js') }}"></script>
-
-
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css"
+      integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 </head>
 <body>
+    <div class="row">
+      <div class="col-sm-12">
+        <div class="card shadow p-3 mb-5 bg-white rounded" id="dataset-card">
+          <div class="card-body">
+            <div id="bioactivity-table"></div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <div id="graph"></div>
 
 </body>
 
@@ -19,7 +28,7 @@
 
         var profile = {{ data.training_profile  | tojson | safe }}
         console.log(profile);
-        readAcrossGraph(profile);
+        bioactivityTable(profile);
     </script>
 
 </html>

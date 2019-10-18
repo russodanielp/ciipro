@@ -74,3 +74,60 @@ function readAcrossGraph(data) {
       .style("fill", function(d) { return myColor(d[2])} )
 
 };
+
+
+function bioactivityTable(data) {
+    var tableScroll = $("#bioactivity-table").empty();
+    var table = $('<table></table>').addClass("table table-bordered table-striped mb-0");
+    tableScroll.append(table);
+
+    var header = $('<thead></thead>').append($('<tr></tr>'));
+
+    var uniqueAids = new Set(data.aids);
+    var uniqueAids = Array.from(uniqueAids).sort(function(a, b){return a - b});
+
+    var uniqueCids = new Set(data.cids);
+    var uniqueCids = Array.from(uniqueCids).sort(function(a, b){return a - b});
+
+    header.append($('<th scope="row" >CID</th>'));
+    uniqueAids.map(function (aid, i) {
+            header.append($('<th scope="row" >'+aid+'</th>'));
+    });
+
+    table.append(header);
+
+    var matrix = [];
+
+    for (var i = 0; i < uniqueCids.length; i++) {
+        var row = [];
+        for (var j = 0; j < uniqueAids.length; j++) {
+            row.push(0)
+        }
+        matrix.push(row)
+    }
+
+    data.cids.map(function(cid, i) {
+        var aid = data.aids[i];
+        var outcome = data.outcomes[i];
+
+        matrix[uniqueCids.indexOf(cid)][uniqueAids.indexOf(aid)] = outcome
+    });
+
+                // Build color scale
+    var color = d3.scaleOrdinal()
+              .range(["rgba(0, 0, 255, 0.3)", "rgba(0, 0, 0, 0.3)", "rgba(255, 0, 0, 0.3)"])
+              .domain([-1,0,1]);
+
+    var tableBody = $('<tbody></tbody>')
+    table.append(tableBody);
+
+    matrix.map(function(row, i) {
+        var tableRow = $('<tr></tr>');
+        tableRow.append($('<td scope="row" >'+uniqueCids[i]+'</td>'));
+        row.map(function(datum, j) {
+            tableRow.append($('<td>'+datum+'</td>').css("background-color", color(datum)));
+        })
+        tableBody.append(tableRow);
+    })
+
+}
