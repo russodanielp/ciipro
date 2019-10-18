@@ -78,7 +78,7 @@ function readAcrossGraph(data) {
 
 function bioactivityTable(data) {
     var tableScroll = $("#bioactivity-table").empty();
-    var table = $('<table></table>').addClass("table table-bordered table-striped mb-0");
+    var table = $('<table></table>').addClass("table table-bordered table-striped mb-0 table-responsive");
     tableScroll.append(table);
 
     var header = $('<thead></thead>').append($('<tr></tr>'));
@@ -123,7 +123,7 @@ function bioactivityTable(data) {
 
     matrix.map(function(row, i) {
         var tableRow = $('<tr></tr>');
-        tableRow.append($('<td scope="row" >'+uniqueCids[i]+'</td>'));
+        tableRow.append($('<td class="cid-row"  scope="row" >'+uniqueCids[i]+'</td>'));
         row.map(function(datum, j) {
             tableRow.append($('<td>'+datum+'</td>').css("background-color", color(datum)));
         })

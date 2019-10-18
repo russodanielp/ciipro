@@ -9,13 +9,32 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css"
       integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
 </head>
 <body>
     <div class="row">
-      <div class="col-sm-12">
+      <div class="col-sm-6">
         <div class="card shadow p-3 mb-5 bg-white rounded" id="dataset-card">
           <div class="card-body">
-            <div id="bioactivity-table"></div>
+              <h3 class="card-title">Biological nearest neighbors</h3>
+              <div id="bioactivity-table"></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6">
+        <div class="card shadow p-3 mb-5 bg-white rounded" id="dataset-card">
+          <div class="card-body">
+              <h3 class="card-title">Chemical nearest neighbors</h3>
+              <div id="chem-nns">
+                  {%  for bionn in data.bio_nns %}
+                      <div class="overlay" id={{ bionn }} style="display:inline">
+                      <img height="200" width="200" src="https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/{{ bionn }}/PNG"/>
+                      </div>
+                      {% if loop.index % 3 == 0 %}
+                            <br>
+                        {%  endif %}
+                  {% endfor %}
+              </div>
           </div>
         </div>
       </div>
@@ -29,6 +48,11 @@
         var profile = {{ data.training_profile  | tojson | safe }}
         console.log(profile);
         bioactivityTable(profile);
+
+        $("td.cid-row").mouseenter(function() {
+            var cid = $( this ).text();
+            $("#" + cid).css("background-color", "rgb(255, 0, 0, 1)")
+        });
     </script>
 
 </html>

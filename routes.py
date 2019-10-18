@@ -756,6 +756,7 @@ def read_across(cid, profile):
             'aids': nns_profile.aids,
             'outcomes': nns_profile.outcomes,
         },
+        'bio_nns': set(nns_profile.cids),
         'target': cid,
         'target_profile': {
             'cids': target_profile.cids,
