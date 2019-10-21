@@ -11,7 +11,7 @@ import os
 import ntpath
 
 from flask import Flask, render_template, flash, session, \
-    redirect, url_for, g, send_file, request, jsonify
+    redirect, url_for, g, send_file, request, jsonify, Response
 from flask_login import login_user, logout_user, current_user, login_required, LoginManager
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -765,6 +765,11 @@ def read_across(cid, profile):
         }
     }
 
+    data['activities'] = {}
+    for cid in nns_profile.cids:
+        import random
+        data['activities'][cid] = random.choice([0, 1])
+
     return render_template('read-across.html', data=data)
 
 
@@ -911,6 +916,29 @@ def delete_dataset():
 
     return 'OK', 200
 
+
+@login_required
+@app.route('/svg/<cid>', methods=['GET'])
+def get_svg(cid):
+
+    from rdkit.Chem.Draw import rdMolDraw2D
+    from rdkit import Chem
+    from rdkit.Chem import rdDepictor
+    from pc_mongodb import compounds_db
+
+    smiles = compounds_db.query_list([str(cid)], 'CID', ['SMILES Canonical'])[0]['SMILES Canonical']
+
+    mol = Chem.MolFromSmiles(smiles)
+
+    mc = Chem.Mol(mol.ToBinary())
+    rdDepictor.Compute2DCoords(mc)
+
+    drawer = rdMolDraw2D.MolDraw2DSVG(400, 400)
+    drawer.DrawMolecule(mc)
+    drawer.FinishDrawing()
+    svg = drawer.GetDrawingText().replace('svg:','')
+
+    return Response(svg, mimetype='image/svg+xml')
 
 
 @login_required
