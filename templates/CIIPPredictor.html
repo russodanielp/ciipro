@@ -60,10 +60,15 @@
                         <h5 class="card-title">CIIPro predictions</h5>
                         <div class="row">
                             <div class="col-sm-4">
-                                <label for="">Inactive weights:</label>
-                                <input  type="text" class="form-control" id="inactives" name="inactives">
+                                <div class="slidecontainer">
+                                    <label for="weight-slider">Select Inactive Weights:</label><br>
+                                    <input type="range" min="0" max="1" value="0.1" step="0.1" class="slider" name="inactives" id="weight-slider"><br>
 
-						        </input>
+                                    <p>Weight: <span id="weightValue"></span></p>
+
+                                </div>
+
+
 					        </div>
 
 
@@ -159,6 +164,11 @@
     // page
     var statsResults = $("#stats-results");
 
+    $("#weightValue").text($("#weight-slider").val());
+
+    $("#weight-slider").on("change", function() {
+        $("#weightValue").text($("#weight-slider").val());
+    });
 
     if (statsResults.length != 0) {
         addPredictorToolButton();

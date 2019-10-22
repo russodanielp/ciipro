@@ -654,63 +654,76 @@ def CIIPPredict():
 
     if request.method == 'POST':
 
-
         profile_filename = request.form['profile_filename']
         compound_filename = request.form['compound_filename']
-
-        # biosim_cutoff = float(request.form['cutoff'])
-        # conf_cutoff = float(request.form['conf'])
-        # nn_cutoff = float(request.form['nns'])
-        #
-        # training_profile = g.user.load_bioprofile(profile_filename)
-        #
-        # training_matrix = training_profile.to_frame()
-        #
-        # training_data = g.user.load_dataset(training_profile.meta['training_set'])
-        #
-        # test_data = g.user.load_dataset(compound_filename)
-        #
-        #
-        #
-        # # get a full test set profile
-        #
-        # test_profile_json = test_data.get_bioprofile()
-        #
-        # # I guess since a lot of these dont get used might be better to
-        # # create two classes one for training profiles and one for test
-        # test_profile = bp.Bioprofile(None,
-        #                              test_profile_json['cids'],
-        #                              test_profile_json['aids'],
-        #                              test_profile_json['outcomes'],
-        #                              None,
-        #                              None)
-        #
-        # test_matrix = test_profile.to_frame()
-        #
-        # # only use the intersection of the test profile and the training profile
-        # shared_assays = training_matrix.columns.intersection(test_matrix.columns)
-        #
-        # # TODO: Need to come up with an error if no test compounds have assays in the training profile
-        #
-        # # align both axis
-        # test_matrix = test_matrix.loc[:, shared_assays]
-        # training_matrix = training_matrix.loc[:, shared_assays]
-        #
-        #
-        #
-        # trainin_activites = training_data.get_activities(use_cids=True)
-        # trainin_activites = trainin_activites[training_matrix.index]
-        #
-        # bionns_sorted = biosim.sort_by_bioactivity(test_matrix.values, training_matrix.values)
-        #
+        inactive_weights = float(request.form['inactives'])
 
 
-        data = [
-            {"cid": 2244, "acts": 4, "inacts": 19, "pred":1},
-            {"cid": 2246, "acts": 13, "inacts": 27, "pred":1},
-            {"cid": 1244, "acts": 25, "inacts": 23, "pred":0},
-            {"cid": 2245, "acts": 9, "inacts": 31, "pred":1}
-        ]
+
+        training_profile = g.user.load_bioprofile(profile_filename)
+
+        training_matrix = training_profile.to_frame()
+
+        training_data = g.user.load_dataset(training_profile.meta['training_set'])
+
+        test_data = g.user.load_dataset(compound_filename)
+
+
+
+        # get a full test set profile
+
+        test_profile_json = test_data.get_bioprofile()
+
+        # I guess since a lot of these dont get used might be better to
+        # create two classes one for training profiles and one for test
+        test_profile = bp.Bioprofile(None,
+                                     test_profile_json['cids'],
+                                     test_profile_json['aids'],
+                                     test_profile_json['outcomes'],
+                                     None,
+                                     None)
+
+        test_matrix = test_profile.to_frame()
+
+        # only use the intersection of the test profile and the training profile
+        shared_assays = training_matrix.columns.intersection(test_matrix.columns)
+
+        # TODO: Need to come up with an error if no test compounds have assays in the training profile
+
+        # align both axis
+        test_matrix = test_matrix.loc[:, shared_assays]
+        training_matrix = training_matrix.loc[:, shared_assays]
+
+
+
+        trainin_activites = training_data.get_activities(use_cids=True)
+        trainin_activites = trainin_activites[training_matrix.index]
+
+        bionns_sorted = biosim.sort_by_bioactivity(test_matrix.values,
+                                                   training_matrix.values,
+                                                   weight=inactive_weights)
+
+        predictions = []
+
+        for nns in bionns_sorted:
+            pred = trainin_activites.iloc[nns].mean()
+            predictions.append(pred)
+
+        acts = (test_matrix == 1).sum(1).astype(int).tolist()
+        inacts = (test_matrix == -1).sum(1).astype(int).tolist()
+        cids = [int(cid) for cid in test_matrix.index]
+
+        data = []
+        for cid, act, inact, pred in zip(cids, acts, inacts, predictions):
+            record = {
+                "cid": cid,
+                "acts": act,
+                "inacts": inact,
+                "pred": pred
+            }
+            data.append(record)
+
+        data = sorted(data, key=lambda record: record["acts"], reverse=True)
 
 
         return render_template('CIIPPredictor.html', profiles=g.user.get_user_bioprofiles(),
@@ -727,26 +740,43 @@ def read_across(cid, profile):
 
     training_profile = g.user.load_bioprofile(profile)
 
-    training_matrix = training_profile.to_frame()
-    test_matrix = training_matrix.copy()
+    test_data = ds.DataSet(None, [int(cid)], None, None, 'cid')
 
-    results = biosim.sort_by_bioactivity(test_matrix.iloc[1:2, :].values,
+    test_profile_json = test_data.get_bioprofile()
+
+    test_profile = bp.Bioprofile(None,
+                                 test_profile_json['cids'],
+                                 test_profile_json['aids'],
+                                 test_profile_json['outcomes'],
+                                 None,
+                                 None)
+
+
+    training_matrix = training_profile.to_frame()
+    test_matrix = test_profile.to_frame()
+    shared_assays = training_matrix.columns.intersection(test_matrix.columns)
+
+    training_data = g.user.load_dataset(training_profile.meta['training_set'])
+    trainin_activites = training_data.get_activities(use_cids=True)
+
+    # align both axis
+    test_matrix = test_matrix.loc[:, shared_assays]
+    training_matrix = training_matrix.loc[:, shared_assays]
+
+    results = biosim.sort_by_bioactivity(test_matrix.values,
                                          training_matrix.values,
-                                         k=5)
+                                         k=5, weight=1)
 
     nns_matrix = training_matrix.iloc[results[0]]
 
-    full_matrix = pd.concat([test_matrix.iloc[1:2, :], nns_matrix])
-
-    print(full_matrix)
-
+    print(nns_matrix)
     nns_profile = bp.Bioprofile.from_frame('nns',
-                                           full_matrix,
+                                           nns_matrix,
                                            None,
                                            None)
 
     target_profile = bp.Bioprofile.from_frame(cid,
-                                              test_matrix.iloc[1:2, :],
+                                              test_matrix,
                                               None,
                                               None)
 
@@ -768,7 +798,7 @@ def read_across(cid, profile):
     data['activities'] = {}
     for cid in nns_profile.cids:
         import random
-        data['activities'][cid] = random.choice([0, 1])
+        data['activities'][cid] = int(trainin_activites.loc[cid])
 
     return render_template('read-across.html', data=data)
 
