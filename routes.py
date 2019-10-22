@@ -707,7 +707,10 @@ def CIIPPredict():
 
         for nns in bionns_sorted:
             pred = trainin_activites.iloc[nns].mean()
-            predictions.append(pred)
+            if pred >= 0.5:
+                predictions.append(1)
+            else:
+                predictions.append(0)
 
         acts = (test_matrix == 1).sum(1).astype(int).tolist()
         inacts = (test_matrix == -1).sum(1).astype(int).tolist()
@@ -780,13 +783,24 @@ def read_across(cid, profile):
                                               None,
                                               None)
 
+    train_fps = training_data.get_pubchem_fps()
+    test_fps = test_data.get_pubchem_fps()
+
+    # now get chem similarity
+    chemdis = biosim.chem_distances(test_fps.values, train_fps.values)
+    chemsim = 1 - chemdis
+    chem_nns = biosim.get_k_chem_neighbors(chemsim, k=5)
+
+    chem_cids = [int(cid) for cid in train_fps.index[chem_nns[0]]]
+
     data = {
         'training_profile': {
             'cids': nns_profile.cids,
             'aids': nns_profile.aids,
             'outcomes': nns_profile.outcomes,
         },
-        'bio_nns': set(nns_profile.cids),
+        'bio_nns': nns_profile.cids,
+        'chem_nns': chem_cids,
         'target': cid,
         'target_profile': {
             'cids': target_profile.cids,
@@ -796,7 +810,7 @@ def read_across(cid, profile):
     }
 
     data['activities'] = {}
-    for cid in nns_profile.cids:
+    for cid in nns_profile.cids + chem_cids:
         import random
         data['activities'][cid] = int(trainin_activites.loc[cid])
 

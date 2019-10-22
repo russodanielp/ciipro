@@ -12,6 +12,21 @@
     <script src="{{ url_for('static', filename='js/requests.js') }}"></script>
 </head>
 <body>
+
+    <div class="row">
+      <div class="col-sm-3">
+          <div class="card shadow p-3 mb-5 bg-white rounded" id="dataset-card">
+              <div class="card-body">
+                  <h3 class="card-title">Target</h3>
+
+                  <div id="target-cid">
+
+                  </div>
+
+              </div>
+          </div>
+      </div>
+    </div>
     <div class="row">
       <div class="col-sm-6">
         <div class="card shadow p-3 mb-5 bg-white rounded" id="dataset-card">
@@ -21,11 +36,11 @@
           </div>
         </div>
       </div>
-      <div class="col-sm-6">
+      <div class="col-sm-3">
         <div class="card shadow p-3 mb-5 bg-white rounded" id="dataset-card">
           <div class="card-body">
               <h3 class="card-title">Biological Nearest Neighbor Structure</h3>
-              <div id="chem-nns">
+              <div id="bio-nns-structures">
 
 
 
@@ -39,16 +54,59 @@
         </div>
       </div>
     </div>
+    <div class="row">
+      <div class="col-sm-12">
+          <div class="card shadow p-3 mb-5 bg-white rounded" id="dataset-card">
+              <div class="card-body">
+                  <h3 class="card-title">Chemical Nearest Neighbors</h3>
+
+
+                  <div id="chem-nns" >
+                     {% for chem_nn in data.chem_nns %}
+                        <div class="overlay" id="{{ chem_nn }}"
+                             style="height:400px;width:400px;float: left">
+
+                        </div>
+                     {% endfor %}
+
+                  </div>
+              </div>
+          </div>
+      </div>
+    </div>
 
 
 </body>
 
     <script>
 
-        var profile = {{ data.training_profile  | tojson | safe }}
-        var activities = {{ data.activities  | tojson | safe }}
+        var profile = {{ data.training_profile  | tojson | safe }};
+        var activities = {{ data.activities  | tojson | safe }};
+        var chemNNs = {{ data.chem_nns  | tojson | safe }};
         console.log(profile);
         bioactivityTable(profile);
+
+        var targetSVG = getResponseFromURL('/svg/'+ {{ data.target }});
+        $("#target-cid").empty().append(targetSVG);
+
+        for (var i=0; i<chemNNs.length; i++) {
+            var chemNNSVG = getResponseFromURL('/svg/'+ chemNNs[i]);
+            $("#"+chemNNs[i]).empty().append(chemNNSVG);
+            $("rect").css("opacity", 0);
+            var act = +activities[chemNNs[i]];
+            if (act == 1) {
+                $("#"+chemNNs[i]).css("background", "rgb(255, 0, 0, 0.1)");
+                $("#"+chemNNs[i]).css("border-style", "solid");
+                $("#"+chemNNs[i]).css("border-color", "rgb(255, 0, 0, 0.9)");
+            } else {
+                $("#"+chemNNs[i]).css("background",  "rgb(0, 255, 0, 0.1)");
+                $("#"+chemNNs[i]).css("border-style", "solid");
+                $("#"+chemNNs[i]).css("border-color", "rgb(0, 255, 0, 0.9)");
+            }
+
+
+        }
+
 
         $("td.cid-row").mouseenter(function() {
             var cid = $( this ).text();
