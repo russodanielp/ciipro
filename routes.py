@@ -776,7 +776,7 @@ def read_across(cid, profile):
 
     nns_matrix = training_matrix.iloc[results[0]]
 
-    print(nns_matrix)
+
     nns_profile = bp.Bioprofile.from_frame('nns',
                                            nns_matrix,
                                            None,
@@ -787,7 +787,7 @@ def read_across(cid, profile):
                                               None,
                                               None)
 
-    train_fps = training_data.get_pubchem_fps()
+    train_fps = training_data.get_pubchem_fps().loc[trainin_activites.index]
     test_fps = test_data.get_pubchem_fps()
 
     # now get chem similarity
@@ -795,8 +795,9 @@ def read_across(cid, profile):
     chemsim = 1 - chemdis
     chem_nns = biosim.get_k_chem_neighbors(chemsim, k=5)
 
-    chem_cids = [int(cid) for cid in train_fps.index[chem_nns[0]]]
+    print(trainin_activites.shape, train_fps.shape)
 
+    chem_cids = [int(cid) for cid in train_fps.index[chem_nns[0]]]
     data = {
         'training_profile': {
             'cids': nns_profile.cids,
@@ -815,7 +816,7 @@ def read_across(cid, profile):
 
     data['activities'] = {}
     for cid in nns_profile.cids + chem_cids:
-        import random
+
         data['activities'][cid] = int(trainin_activites.loc[cid])
 
     return render_template('read-across.html', data=data)

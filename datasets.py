@@ -28,7 +28,7 @@ class DataSet:
                  compounds,
                  activities,
                  set_type,
-                 identifier_type='CID'):
+                 identifier_type='cid'):
         """  to do  """
 
         self.name = name
