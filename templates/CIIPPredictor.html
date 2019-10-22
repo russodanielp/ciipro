@@ -94,6 +94,7 @@
                     <div class="card shadow p-3 mb-5 bg-white rounded" id="dataset-card">
                         <div class="card-body">
                             <h5 class="card-title">Prediction results</h5>
+                            <h5><span id="training_profile_used">{{ meta.training_profile_used }}</span> vs. <span id="test_set_used">{{ meta.test_set_used }}</span></h5>
                             <div class="table-wrapper-scroll-y my-custom-scrollbar">
 
                               <table class="table table-bordered table-striped mb-0">
@@ -153,9 +154,9 @@
 
     $('.read-across').click(function() {
         var cid = +$(this).attr("cid");
-        var currentProfile = $( "#profile-selection option:selected" ).val();
+        var predictionProfile = $( "#training_profile_used" ).text().trim();
 
-        openReadAcross(cid, currentProfile);
+        openReadAcross(cid, predictionProfile);
 
     });
 

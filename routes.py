@@ -728,9 +728,13 @@ def CIIPPredict():
 
         data = sorted(data, key=lambda record: record["acts"], reverse=True)
 
+        meta = {
+            'training_profile_used': training_profile.name,
+            'test_set_used': test_data.name
+        }
 
         return render_template('CIIPPredictor.html', profiles=g.user.get_user_bioprofiles(),
-                               testsets=g.user.get_user_datasets(set_type='test'), data=data)
+                               testsets=g.user.get_user_datasets(set_type='test'), data=data, meta=meta)
 
 
 
