@@ -1045,6 +1045,7 @@ def send_cluster_data():
     return 'OK', 200
 
 
+
 @login_required
 @app.route('/get_adj_matrix/<clustering_name>')
 def get_adj_matrix(clustering_name):
