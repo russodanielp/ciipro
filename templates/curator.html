@@ -1,0 +1,136 @@
+{% extends "template.html" %}
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/curator.css') }}">
+<script src="../static/js/curator.js"></script>
+
+<div id="divLoading">
+
+</div>
+
+<div class="dataset-body">
+
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="card shadow p-3 mb-5 bg-white rounded">
+              <div class="card-body">
+
+                  <h5 class="card-title">Upload or import a dataset for curation.</h5>
+                  <p class="card-text">Please select a file to upload a new dataset. Datasets must be an
+                  SDFile tab-delimited file with chemical structure in SMILES, InChi, or InChiKey format.  The first column should be the chemical
+                  identifier and the second column should be a binary activity consisting only of 0s and 1s.</p>
+
+                  <p class="card-text">Alternatively, you can import a set of compound structures from any PubChem Assay by using
+                      the respective PubChem Assay Identifier (AID).</p>
+
+                  <form action="/uploadcurationset" method="post" enctype="multipart/form-data" name="">
+
+                      <h5>Upload a file.</h5>
+                      <input type="file" class="form-control-file top-padding btm-padding" name="sdfile" id="sdfile">
+
+                      <div class="form-group top-padding">
+                        <label for="cmp-id-sel" class="card-text">Compound identifier:</label>
+                          <select class="form-control" id="cmp-id-sel" name="file_type">
+                            <option value="sdfile"> SDFile</option>
+                            <option value="txt"> TXT</option>
+                          </select>
+                      </div>
+
+                      <input type="submit" style="color: white;"
+                         class="btn btn-primary btn-padding"
+                         value="Upload" onclick="loading()">
+                  </form>
+                      <br>
+                      <h4>----Or----</h4>
+                      <h5>Import a PubChem AID</h5>
+                      <input class="form-control form-control-sm" type="text" placeholder="Enter PubChem AID">
+
+                      <input type="submit" style="color: white;"
+                         class="btn btn-primary btn-padding"
+                         value="Import" onclick="importAID()">
+
+              </div>
+            </div>
+          </div>
+        <div class="col-sm-6">
+        <div class="card shadow p-3 mb-5 bg-white rounded" id="dataset-card">
+          <div class="card-body">
+
+            <h5 class="card-title">Curation</h5>
+
+              <ul class="list-group" id="applied-steps">
+              </ul>
+
+                  <label for="sel1">Available steps:</label>
+                  <select class="form-control" id="curation-steps">
+                      <option value="One-Step"> One-step</option>
+                      <option value="Standardize"> Standardize chemicals</option>
+                      <option value="Remove salts/mixtures"> Remove salts/mixtures</option>
+                      <option value="Remove duplicates"> Remove duplicates</option>
+                      <option value="Balance active/inactive - Random"> Balance active/inactive - Random</option>
+                      <option value="Balance active/inactive - Similarity"> Balance active/inactive - Similarity</option>
+                  </select>
+
+              <label for="sel1">Select curation steps:</label>
+
+
+              <button onclick="addCurationStep()" class="btn btn-success btn-padding">Add step</button>
+              <button onclick="clearSteps()" class="btn btn-danger btn-padding">Clear steps</button>
+              <button onclick="sendCurationSteps()" class="btn btn-primary btn-padding">Apply curation</button>
+
+
+          </div>
+        </div>
+        </div>
+    </div>
+
+    <div class="row">
+      <div class="col-sm-12">
+          <div class="card shadow p-3 mb-5 bg-white rounded" id="dataset-card">
+                    <div class="card-body">
+                        {% if curationset %}
+                            <table class="display" id="curation-table" style="width:50%">
+                                <thead>
+                                <tr>
+                                {% for col in curationset[0] %}
+                                   <th>{{ col }}</th>
+                                {% endfor %}
+                                </tr>
+                                </thead>
+                                <tbody>
+
+                                {% for data in curationset[1:] %}
+                                    <tr>
+                                        {% for point in  data  %}
+                                            <td fontsize="8px">{{ point }}</td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+
+
+                                </tbody>
+                            </table>
+                        <input type="submit" style="color: white;"
+                         class="btn btn-primary btn-padding"
+                         value="Export" onclick="exportSDF()">
+                        {% endif %}
+                    </div>
+                </div>
+      </div>
+    </div>
+
+
+
+</div>
+<script>
+
+$(document).ready(function() {
+    $('#curation-table').DataTable({
+        "deferLoading": {{ curationset[1:]|length }}
+    });
+} );
+
+
+</script>
+
+{% endblock %}

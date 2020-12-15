@@ -363,7 +363,66 @@ def statsglossary():
     
     """    
     return render_template('statsglossary.html')
-    
+
+
+
+
+
+@app.route('/curator', methods=['GET', 'POST'])
+@login_required
+def curator_page():
+    """ Displays the page for curating a dataset.
+
+    """
+    datasets = g.user.get_user_datasets(set_type='training') + g.user.get_user_datasets(set_type='test')
+
+    return render_template('curator.html', datasets=datasets,
+                           testsets=g.user.get_user_datasets(set_type='test'),
+                           username=g.user.username)
+
+
+@app.route('/uploadcurationset', methods=['POST', 'GET'])
+@login_required
+def uploadcurationset():
+    """ Uploads a file from user and saves to users' compounds folder.  Converts non-PubChem CID identifiers to CIDS using
+        PubChem's PUG Rest.
+
+        Requests:
+            input_type (str): radio button from page
+            compound_file: user file upload, first column should be compounds, second should be activity.
+            model_type: training or test set upload
+    """
+
+    username = g.user.username
+
+    # requests
+    sdfile = request.files['sdfile']
+
+
+    if sdfile and allowed_curation(sdfile.filename):
+        secure_sdf_filename = secure_filename(sdfile.filename)
+
+        user_datasets_folder = g.user.get_user_folder('datasets')
+        user_uploaded_file = os.path.join(user_datasets_folder, secure_sdf_filename)
+
+        # make the name of the dataset just the basename of the file
+
+        name = ntpath.basename(user_uploaded_file).split('.')[0]
+
+        # I think we have to save this in order to use it, not sure if we car read it otherwise
+        sdfile.save(user_uploaded_file)
+
+        # TODO: Need to write some checks to make sure everything in the uploaded dataset is good
+        # TODO: Things like all activies are there, columns match, etc
+        # TODO: the following type conversions are necessary for JSON serialization
+
+        mols = ciipro_io.read_sdf(user_uploaded_file)
+        data = ciipro_io.parse_mols(mols)
+        print(data)
+
+        return render_template('curator.html', curationset=data)
+
+
 @app.route('/datasets', methods=['GET', 'POST'])
 @login_required
 def datasets():
@@ -375,8 +434,8 @@ def datasets():
     return render_template('datasets.html', datasets=datasets,
                            testsets=g.user.get_user_datasets(set_type='test'),
                           username=g.user.username)
-                           
-                           
+
+
 @app.route('/uploaddataset', methods=['POST', 'GET'])
 @login_required
 def uploaddataset():
@@ -503,6 +562,10 @@ def CIIPro_Optimizer():
 
 def allowed_file(filename): #method that checks to see if upload file is allowed
     return '.' in filename and filename.rsplit('.', 1)[1] in CIIProConfig.ALLOWED_EXTENSIONS
+
+def allowed_curation(filename): #method that checks to see if upload file is allowed
+    return '.' in filename and filename.rsplit('.', 1)[1] in ['sdf', 'txt']
+
 
 
 @app.route('/CIIPro_Cluster', methods=['GET', 'POST'])
