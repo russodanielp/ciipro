@@ -48,6 +48,8 @@ from api.database_api import api
 
 import inhouse_databases
 
+
+
 # These variables are configured in CIIProConfig
 # TODO: put all this in a true config file
 app = Flask(__name__)
@@ -418,10 +420,65 @@ def uploadcurationset():
 
         mols = ciipro_io.read_sdf(user_uploaded_file)
         data = ciipro_io.parse_mols(mols)
-        print(data)
 
-        return render_template('curator.html', curationset=data)
+        table_json = {
+            "tableHeader": data[0],
+            "tableData": data[1:]
+        }
 
+        return render_template('curator.html', curationset=table_json)
+
+@app.route('/curateDataset', methods=['GET', 'POST'])
+@login_required
+def curateDataset():
+
+    from rdkit import Chem
+    import curator
+    json_data = request.get_json()
+    columns = json_data['tableHeader']
+
+
+    mols = []
+
+    for key, val in json_data['tableData'].items():
+            if isinstance(val, list) and (len(val) == len(columns)):
+                mol_d = dict(zip(columns, val))
+                mol = Chem.MolFromSmiles(mol_d['SMILES'])
+                for prop, v in mol_d.items():
+                    mol.SetProp(prop, v)
+
+                mols.append(mol)
+    # mols = curator.to_2d(mols)
+    flash('Beginning curating {} molecules'.format(len(mols)))
+
+    cur = curator.Curator(mols)
+
+    cur.check_cmps()
+
+    flags = []
+    for mol_err in cur.flags:
+        s = ''
+        for err_num, err_mess in mol_err:
+            s = s + '{}: {}; '.format(err_num, err_mess)
+
+        flags.append(s)
+
+    headers = ['Flags'] + columns
+
+    data = []
+    for mol, flag in zip(mols, flags):
+        mol_data = [flag]
+        for prop in headers[1:]:
+            if prop == 'SMILES':
+                mol_data.append(Chem.MolToSmiles(mol))
+            else:
+                mol_data.append(mol.GetProp(prop))
+        data.append(mol_data)
+
+    json_data['tableHeader'] = headers
+    json_data['tableData'] = data
+
+    return jsonify(json_data)
 
 @app.route('/datasets', methods=['GET', 'POST'])
 @login_required

@@ -76,7 +76,7 @@
 
               <button onclick="addCurationStep()" class="btn btn-success btn-padding">Add step</button>
               <button onclick="clearSteps()" class="btn btn-danger btn-padding">Clear steps</button>
-              <button onclick="sendCurationSteps()" class="btn btn-primary btn-padding">Apply curation</button>
+              <button id="curateButton" class="btn btn-primary btn-padding">Apply curation</button>
 
 
           </div>
@@ -89,30 +89,15 @@
           <div class="card shadow p-3 mb-5 bg-white rounded" id="dataset-card">
                     <div class="card-body">
                         {% if curationset %}
-                            <table class="display" id="curation-table" style="width:50%">
-                                <thead>
-                                <tr>
-                                {% for col in curationset[0] %}
-                                   <th>{{ col }}</th>
-                                {% endfor %}
-                                </tr>
-                                </thead>
-                                <tbody>
+                            <table class="display" id="curation-table" style="width:100%">
 
-                                {% for data in curationset[1:] %}
-                                    <tr>
-                                        {% for point in  data  %}
-                                            <td fontsize="8px">{{ point }}</td>
-                                        {% endfor %}
-                                    </tr>
-                                {% endfor %}
-
-
-                                </tbody>
                             </table>
                         <input type="submit" style="color: white;"
                          class="btn btn-primary btn-padding"
                          value="Export" onclick="exportSDF()">
+                        <input type="submit" style="color: white;"
+                         class="btn btn-primary btn-padding"
+                         value="Save to CIIPro" onclick="saveToCIIPro()">
                         {% endif %}
                     </div>
                 </div>
@@ -124,11 +109,37 @@
 </div>
 <script>
 
-$(document).ready(function() {
-    $('#curation-table').DataTable({
-        "deferLoading": {{ curationset[1:]|length }}
-    });
-} );
+    {% if curationset %}
+        var tableJSON = {{ curationset|tojson }};
+        $(document).ready(function() {
+        populateTable('#curation-table', tableJSON)
+    } );
+
+    {% endif %}
+
+
+
+$(document).ready(function(){
+   $('#curateButton').on('click',function(){
+
+       var tableData = getTableData("#curation-table");
+
+     $.ajax({
+      url: "/curateDataset",
+      type: "post",
+      dataType: "json",
+      contentType: 'application/json;',
+      data: JSON.stringify(tableData, null),
+      success: function(response) {
+        console.log(response)
+        {#document.write(new_html)#}
+        var tableJSON = response;
+        console.log(tableJSON)
+        populateTable('#curation-table', tableJSON)
+      },
+     });
+  });
+})
 
 
 </script>
