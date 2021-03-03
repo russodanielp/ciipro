@@ -106,7 +106,9 @@ def makeBioprofile(df, actives_cutoff=5):
 
 
     client = pymongo.MongoClient(CIIProConfig.DB_SITE, 27017)
-    client.test.authenticate(CIIProConfig.DB_USERNAME, CIIProConfig.DB_PASSWORD, mechanism='SCRAM-SHA-1')
+
+    if not os.getenv('FLASK_ENV') == 'development':
+        client.test.authenticate(CIIProConfig.DB_USERNAME, CIIProConfig.DB_PASSWORD, mechanism='SCRAM-SHA-1')
     db = client.test
     bioassays = db.Bioassays
 
