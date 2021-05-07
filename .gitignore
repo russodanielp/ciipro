@@ -26,3 +26,14 @@ users.db
 # info about the CIIPro app
 notes.txt
 
+.DS_Store
+
+resources/
+data/
+logs/
+
+Dockerfile
+
+run_docker*.sh
+
+api/api_config.py
