@@ -9,7 +9,7 @@ client = pymongo.MongoClient(CIIProConfig.DB_SITE, 27017)
 
 # if in development mode theres no password/usernmane
 if (CIIProConfig.DB_USERNAME and CIIProConfig.DB_PASSWORD):
-    client.test.authenticate(CIIProConfig.DB_USERNAME, CIIProConfig.DB_PASSWORD, mechanism='SCRAM-SHA-1')
+    client.pubchem.authenticate(CIIProConfig.DB_USERNAME, CIIProConfig.DB_PASSWORD, mechanism='SCRAM-SHA-1')
 
 
 

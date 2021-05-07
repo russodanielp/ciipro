@@ -16,16 +16,28 @@ To request a feature or report a bug, please use [Issue Tracker](https://github.
 
 
 
-### Installing the CIIPro python environment ###
+### Docker ###
 
-Creating a clone of the correct CIIPro environment is done via Anaconda.  Currently, issuing the following 
-command on a linux OS seems to work:
+The preferred method of CIIPro development current is by using [Docker](https://www.docker.com/). 
 
- ```
- conda env update --file environment-linux.yml
- ```
 
-This command will install using the environment-linux.yml a new python environment called ciipro-env-7-17-2019 .
+SQLIte in docker: https://stackoverflow.com/questions/33711818/embed-sqlite-database-to-docker-container.
+
+### Saving Images and deploying them using Docker ###
+
+Saving the current image as an easy way to deploy to a server from the local development machine
+First, save the current image using the following command:
+
+```shell script
+docker save ciipro:latest | gzip > ciiproimage_latest.tar.gz
+```
+
+Then, the image can be transfered to the host machine and loaded like so:
+
+```shell script
+gunzip -c ciiproimage_latest.tar.gz | docker load
+```
+
 
 ### Color Codes ###
 

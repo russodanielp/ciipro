@@ -11,7 +11,8 @@ import os
 import ntpath
 
 from flask import Flask, render_template, flash, session, \
-    redirect, url_for, g, send_file, request, jsonify
+    redirect, url_for, g, send_file, request, jsonify, \
+    Response
 from flask_login import login_user, logout_user, current_user, login_required, LoginManager
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -49,7 +50,6 @@ from api.database_api import api
 import inhouse_databases
 
 
-
 # These variables are configured in CIIProConfig
 # TODO: put all this in a true config file
 app = Flask(__name__)
@@ -57,6 +57,7 @@ app.config['UPLOAD_FOLDER'] = CIIProConfig.UPLOAD_FOLDER
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.secret_key = CIIProConfig.APP_SECRET_KEY
 app.config['RECAPTCHA_PRIVATE_KEY'] = CIIProConfig.RECAPTCHA_PRIVATE_KEY
+
 
 # register the routes api
 
@@ -540,7 +541,11 @@ def uploaddataset():
         else:
             identifiers = list(map(str, identifiers))
 
-        ds_io.write_ds_to_json(identifiers, activities, user_datasets_folder, name, input_type, set_type=model_type)
+        ds_io.write_ds_to_json(identifiers,
+                               activities,
+                               user_datasets_folder,
+                               name, input_type,
+                               set_type=model_type)
         os.remove(user_uploaded_file)
 
         return redirect(url_for('datasets'))  
@@ -1006,9 +1011,15 @@ def get_bioprofile(profile_name):
 @login_required
 @app.route('/download_bioprofile/<profile_name>')
 def download_bioprofile(profile_name):
+    """ send bioprofile as csv file to the user """
     bioprofile = g.user.load_bioprofile(profile_name)
     as_frame = bioprofile.to_frame()
-    return as_frame.to_csv()
+    csv = as_frame.to_csv()
+    return Response(csv,
+                    mimetype="text/csv",
+                    headers={"Content-disposition":
+                             "attachment; filename={}.csv".format(profile_name)})
+
 
 @login_required
 @app.route('/get_bioprofile_class_overview/<profile_name>')
@@ -1254,4 +1265,5 @@ def filter_profile():
 
 
 if __name__ == '__main__': #says if this scripts is run directly, start the application
-	app.run()
+
+	app.run(host="0.0.0.0", port=80)
