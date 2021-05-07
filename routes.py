@@ -1005,6 +1005,14 @@ def get_bioprofile(profile_name):
     json_filename = os.path.join(g.user.get_user_folder('profiles'), '{}.json'.format(profile_name))
     with open(json_filename) as json_file:
         json_data = json.load(json_file)
+
+    # TODO: this is a temp fix
+    # just so large bioprofiles
+    # dont cause problems
+
+    for key in ['cids', 'aids', 'outcomes']:
+        json_data.pop(key)
+
     return json.dumps(json_data)
 
 
@@ -1048,6 +1056,7 @@ def get_bioprofile_descriptions(profile_name):
 
     class_overview = bioprofile.classification_overview()
     descriptions = bioprofile.get_bioassay_info()
+
 
 
     for desc in descriptions:

@@ -31,13 +31,13 @@ function refreshProfile() {
     tsElement.innerHTML = profile_data.meta.num_total_inactives;
 
     var queryUrlClassification = $SCRIPT_ROOT + "get_bioprofile_class_overview/" + currentProfile;
-    var classificationData = JSON.parse(getResponseFromURL(queryUrlClassification));
+    // var classificationData = JSON.parse(getResponseFromURL(queryUrlClassification));
 
     // plotHeatMap comes from
 
 
     aidStackedBar(classificationData);
-    tableUpdate();
+    // tableUpdate();
 }
 
 
