@@ -74,7 +74,7 @@ def to_2d(mols):
     converts every mol in mols to 2D by converting from a mol
     to SMILES and back again.
     """
-    return [Chem.MolFromSmiles(Chem.MolToSmiles(m)) if m else m for m in mols]
+    return [Chem.MolFromSmiles(Chem.MolToSmiles(m).replace('@', '')) if m else m for m in mols]
 
 
 if __name__ == '__main__':
