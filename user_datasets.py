@@ -2,7 +2,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.ext.declarative import declarative_base
 
 import pandas as pd
 from rdkit import Chem
@@ -15,7 +15,6 @@ from sqlalchemy.orm import sessionmaker
 Base = declarative_base()
 
 engine = create_engine('sqlite:///.app.db', echo=True)
-
 Session = sessionmaker(bind=engine)
 
 class Dataset(Base):

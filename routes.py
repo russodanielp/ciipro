@@ -1,53 +1,49 @@
-# -*- coding: utf-8 -*-
+# general imports and adding
+# the module to the system path
+# which I need to find out whether
+# or not this is still necessary
+
 import os, sys
-
-filename = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-
-sys.path.insert(0, filename)
-print(filename)
-
-
-import os
 import ntpath
 
+# flask imports
 from flask import Flask, render_template, flash, session, \
     redirect, url_for, g, send_file, request, jsonify, \
     Response
 from flask_login import login_user, logout_user, current_user, login_required, LoginManager
 from werkzeug.utils import secure_filename
-from werkzeug.security import generate_password_hash, check_password_hash
+
 from flask_sqlalchemy import SQLAlchemy
+
+# local sqlite data set imports
 from sql import passwordRetrieval, usernameRetrieval, passwordReset
-from CIIProTools import *
-from ciipro_config import CIIProConfig
-import json, glob
-from BioSimLib import *
-#import urllib
-import zipfile
-
 import sqlalchemy.ext
+import user_datasets as user_ds
+import user_database as user_db
 
-from datasets_io import write_ds_to_json
-import pandas as pd
-import numpy as np
-
+# CIIPro modules
+from CIIProTools import *
+from BioSimLib import *
+from ciipro_config import CIIProConfig
 import ciipro_io
-
 import datasets_io as ds_io
 import datasets as ds
-
 import bioprofiles as bp
 import biosimilarity as biosim
-
 import fpprofiles as fp
-
 from cluster import in_vitro_fingerprint_correlations
+import inhouse_databases
 
+# data and data science imports
+import json, glob
+import pandas as pd
+import numpy as np
 from ml import get_class_stats
 
+# considering removing the API
+# for the time being
+# TODO: decide how to proceed with this
 from api.database_api import api
-
-import inhouse_databases
 
 
 # These variables are configured in CIIProConfig
@@ -60,7 +56,6 @@ app.config['RECAPTCHA_PRIVATE_KEY'] = CIIProConfig.RECAPTCHA_PRIVATE_KEY
 
 
 # register the routes api
-
 app.register_blueprint(api)
 
 db = SQLAlchemy(app)
@@ -69,98 +64,10 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 
 
-class User(db.Model):
-    tablename__ = "users"
-    id = db.Column('user_id', db.Integer, primary_key=True)
-    username = db.Column('username', db.String(20), unique=True, index=True)
-    pw_hash = db.Column('password', db.String(10))
-    email = db.Column('email', db.String(50), unique=True, index=True)
-    
-    def __init__(self, username, password, email):
-        self.username = username
-        self.set_password(password)
-        self.email = email
-        
-    def set_password(self, password):
-        self.pw_hash = generate_password_hash(password, method='pbkdf2:sha1', 
-                                              salt_length=8)
-        
-    def check_password(self, password):
-        return check_password_hash(self.pw_hash, password)
-        
-    def is_authenticated(self):
-        return True
-        
-    def is_active(self):
-        return True
-    
-    def is_anonymous(self):
-        return False
-        
-    def get_id(self):
-        return str(self.id)
-        
-    def __repr__(self):
-        return '<User %r>' % (self.username)
 
-    # I added these functions,
-    # very helpful to probably bring a lot of stuff into this class
-
-    def get_user_folder(self, folder_name):
-
-        # make folder if it doesnt exists
-        folder = os.path.join(CIIProConfig.UPLOAD_FOLDER, self.username, folder_name)
-        if not os.path.exists(folder):
-            os.makedirs(folder)
-        return folder
-
-    def get_user_datasets(self, set_type="training"):
-        """ returns the datasets for a users """
-        return ds_io.get_datasets_names_for_user(self.get_user_folder('datasets'), set_type=set_type)
-
-    def get_user_bioprofiles(self):
-        """ returns profiles for a user """
-        return ciipro_io.get_profiles_names_for_user(self.get_user_folder('profiles'))
-
-    def get_user_fp_profiles(self):
-        """ returns profiles for a user """
-        return ciipro_io.get_profiles_names_for_user(self.get_user_folder('fp_profiles'))
-
-    def load_dataset(self, ds_name):
-
-        """ load a dataset object given a dataset name for a user """
-
-        if (ds_name in self.get_user_datasets("training")) or (ds_name in self.get_user_datasets("test")):
-            ds_json_file = os.path.join(self.get_user_folder('datasets'), '{}.json'.format(ds_name))
-
-            return ds.DataSet.from_json(ds_json_file)
-
-
-    def load_bioprofile(self, bp_name):
-
-        """ load a dataset object given a dataset name for a user """
-
-        if bp_name in self.get_user_bioprofiles():
-            bp_json_file = os.path.join(self.get_user_folder('profiles'), '{}.json'.format(bp_name))
-
-            return bp.Bioprofile.from_json(bp_json_file)
-
-    def load_adj_matrix(self, clustering_name):
-        adj_json_file = os.path.join(self.get_user_folder('fp_profiles'),
-                                     '{}_adj_matrix.json'.format(clustering_name))
-        return fp.AdjMatrix.from_json(adj_json_file)
-
-    def load_fp_profile(self, clustering_name):
-        fp_json_file = os.path.join(self.get_user_folder('fp_profiles'),
-                                     '{}.json'.format(clustering_name))
-        return fp.FPprofile.from_json(fp_json_file)
-
-
-    
-db.create_all()
 @login_manager.user_loader
 def load_user(id):
-    return User.query.get(int(id))
+    return user_db.User.query.get(int(id))
 
 @app.after_request
 def add_header(response):
@@ -179,6 +86,7 @@ def home():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    """ function for a log """
     if request.method == 'GET':
         return render_template('login.html')
         
@@ -527,7 +435,7 @@ def uploaddataset():
 
         # I think we have to save this in order to use it, not sure if we car read it otherwise
         file.save(user_uploaded_file)
-        print(user_uploaded_file)
+
         # TODO: Need to write some checks to make sure everything in the uploaded dataset is good
         # TODO: Things like all activies are there, columns match, etc
         # TODO: the following type conversions are necessary for JSON serialization
@@ -898,7 +806,7 @@ def CIIPPredict():
 
 
         stats = [bio_stats, chem_stats, hybrid_stats]
-        print(stats)
+
         return render_template('CIIPPredictor.html', profiles=g.user.get_user_bioprofiles(),
                                testsets=g.user.get_user_datasets(set_type='test'),
                                data=data, stats=stats)
@@ -986,7 +894,7 @@ def internalServiceError(e):
 @login_required
 @app.route('/get_dataset_overview/<dataset_name>')
 def get_dataset_overview(dataset_name):
-    print(dataset_name)
+
     ds = g.user.load_dataset(dataset_name)
     actives, inactives = ds.get_classifications_overview()
     data  = {
