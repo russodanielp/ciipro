@@ -18,7 +18,6 @@ from flask_sqlalchemy import SQLAlchemy
 # local sqlite data set imports
 from sql import passwordRetrieval, usernameRetrieval, passwordReset
 import sqlalchemy.ext
-import user_datasets as user_ds
 import user_database as user_db
 
 # CIIPro modules
@@ -50,10 +49,10 @@ from api.database_api import api
 # TODO: put all this in a true config file
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = CIIProConfig.UPLOAD_FOLDER
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = CIIProConfig.SQLITEDB_DIR
 app.secret_key = CIIProConfig.APP_SECRET_KEY
 app.config['RECAPTCHA_PRIVATE_KEY'] = CIIProConfig.RECAPTCHA_PRIVATE_KEY
-
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # register the routes api
 app.register_blueprint(api)

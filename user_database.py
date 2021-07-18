@@ -3,13 +3,33 @@ from werkzeug.security import generate_password_hash, check_password_hash
 # TODO: remove this into its own module
 # I was having issues with circular
 # imports
+
+
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import relationship
+
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+
+import pandas as pd
+from rdkit import Chem
+from rdkit.Chem.Draw import rdMolDraw2D
+
+from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy.orm import sessionmaker
+
+Base = declarative_base()
+
 class User(db.Model):
     """ sqlalchemly model for handling login information """
-    tablename__ = "users"
+    __tablename__ = "users"
     id = db.Column('user_id', db.Integer, primary_key=True)
     username = db.Column('username', db.String(20), unique=True, index=True)
     pw_hash = db.Column('password', db.String(10))
     email = db.Column('email', db.String(50), unique=True, index=True)
+
+    # datasets_id = db.Column('datasets_id', db.String, db.ForeignKey("datasets.id"))
+    datasets = db.relationship("Dataset", backref='users', uselist=True)
 
     def __init__(self, username, password, email):
         self.username = username
@@ -41,56 +61,29 @@ class User(db.Model):
     def __repr__(self):
         return '<User %r>' % (self.username)
 
-    # I added these functions,
-    # very helpful to probably bring a lot of stuff into this class
 
-    # def get_user_folder(self, folder_name):
-    #
-    #     # make folder if it doesnt exists
-    #     folder = os.path.join(CIIProConfig.UPLOAD_FOLDER, self.username, folder_name)
-    #     if not os.path.exists(folder):
-    #         os.makedirs(folder)
-    #     return folder
-    #
-    # def get_user_datasets(self, set_type="training"):
-    #     """ returns the datasets for a users """
-    #     return ds_io.get_datasets_names_for_user(self.get_user_folder('datasets'), set_type=set_type)
-    #
-    # def get_user_bioprofiles(self):
-    #     """ returns profiles for a user """
-    #     return ciipro_io.get_profiles_names_for_user(self.get_user_folder('profiles'))
-    #
-    # def get_user_fp_profiles(self):
-    #     """ returns profiles for a user """
-    #     return ciipro_io.get_profiles_names_for_user(self.get_user_folder('fp_profiles'))
-    #
-    # def load_dataset(self, ds_name):
-    #
-    #     """ load a dataset object given a dataset name for a user """
-    #
-    #     if (ds_name in self.get_user_datasets("training")) or (ds_name in self.get_user_datasets("test")):
-    #         ds_json_file = os.path.join(self.get_user_folder('datasets'), '{}.json'.format(ds_name))
-    #
-    #         return ds.DataSet.from_json(ds_json_file)
-    #
-    # def load_bioprofile(self, bp_name):
-    #
-    #     """ load a dataset object given a dataset name for a user """
-    #
-    #     if bp_name in self.get_user_bioprofiles():
-    #         bp_json_file = os.path.join(self.get_user_folder('profiles'), '{}.json'.format(bp_name))
-    #
-    #         return bp.Bioprofile.from_json(bp_json_file)
-    #
-    # def load_adj_matrix(self, clustering_name):
-    #     adj_json_file = os.path.join(self.get_user_folder('fp_profiles'),
-    #                                  '{}_adj_matrix.json'.format(clustering_name))
-    #     return fp.AdjMatrix.from_json(adj_json_file)
-    #
-    # def load_fp_profile(self, clustering_name):
-    #     fp_json_file = os.path.join(self.get_user_folder('fp_profiles'),
-    #                                 '{}.json'.format(clustering_name))
-    #     return fp.FPprofile.from_json(fp_json_file)
+class Dataset(db.Model):
+    """ main table to hold a users' datasets """
+    __tablename__ = 'datasets'
+    id = db.Column('id', db.Integer, primary_key=True)
+    activity_description = db.Column('float', db.Float)
+    owner_id = db.Column('owner_id', db.Integer, db.ForeignKey("users.user_id"))
+
+    # chemicals = relationship("Chemical", back_populates="dataset")
+    chemicals = db.relationship("Chemical", backref='datasets', uselist=True)
+    #owner = relationship("User", back_populates="datasets")
+
+class Chemical(db.Model):
+    """ users chemical class.  Every uploaded chemical for a user should have
+     at least three properties, an activity, inchi, and canonical smiles.  """
+    __tablename__ = 'chemicals'
+    id = db.Column('id', db.Integer, primary_key=True)
+    activity = db.Column('activity', db.Float)
+    inchi = db.Column('inchi', db.String)
+    smiles = db.Column('smiles', db.String)
+
+    dataset_id = db.Column('dataset_id', db.Integer, db.ForeignKey("datasets.id"))
+    dataset = relationship("Dataset", back_populates='chemicals')
 
 
 db.create_all()
