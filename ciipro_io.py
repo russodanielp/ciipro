@@ -3,8 +3,59 @@
 import json, glob, os
 from rdkit import Chem
 from typing import List
+import pandas as pd
+import typing as tp
+from pc_mongodb import compounds_db
 
-def parse_upload_file(filename: str):
+
+def check_input_file(filename: str) -> tp.Tuple[bool, str]:
+    """ checks for validity of an uploaded file and returns a
+    tuple of a boolean stating wether its valid and and error message """
+
+    raw_data = pd.read_csv(filename, header=None, sep='\t')
+
+    # check two columns
+    if len(raw_data.columns) != 2:
+        return False, "Dataset does not contain two columns."
+
+    # check identifiers are unique
+    if raw_data[0].duplicated().any():
+        return False, "Dataset contains non-unique identifiers."
+
+    # check activity for each molecule
+    if raw_data[1].isna().any():
+        return False, "Dataset contains missing activity values."
+
+    return True, ""
+
+
+def convert_upload_data(upload_data: pd.DataFrame, identifier: str) -> pd.DataFrame:
+    """ converts uploaded data from a two columns to get smiles, cid, and inchi """
+    identifier_list = upload_data[identifier].values.tolist()
+
+    if identifier == 'cid':
+        query_field = 'CID'
+    elif identifier == 'smiles':
+        query_field = 'SMILES Canonical'
+    else:
+        query_field = 'InChI Standard'
+
+
+    pipeline = [
+        {'$match': {query_field: {'$in': identifier_list}}},
+        {'$project': {
+            'cid': '$CID',
+            'smiles': '$SMILES Canonical',
+            'inchi': '$InChI Standard'
+
+        }}
+    ]
+
+    df = pd.DataFrame(list(compounds_db.col_ob.aggregate(pipeline)))
+    return df
+
+
+def parse_upload_file(filename: str) -> pd.DataFrame:
     identifiers = []
     activities = []
     f = open(filename, 'r')
@@ -79,3 +130,9 @@ def parse_mols(mols: List[Chem.Mol]) -> List:
                 mol_data.append('NA')
         data.append(mol_data)
     return data
+
+if __name__ == '__main__':
+    test = pd.read_csv('/Users/danielrusso/data/ciipro_test_sets/ciipro_test.txt', sep='\t', header=None)
+    test[0] = test[0].astype(str)
+    df = convert_upload_data(test.iloc[:20], identifier='cid')
+    print(df.head())

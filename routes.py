@@ -32,6 +32,7 @@ import biosimilarity as biosim
 import fpprofiles as fp
 from cluster import in_vitro_fingerprint_correlations
 import inhouse_databases
+from helpers import allowed_file, allowed_curation
 
 # data and data science imports
 import json, glob
@@ -63,10 +64,10 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 
 
-
 @login_manager.user_loader
 def load_user(id):
     return user_db.User.query.get(int(id))
+
 
 @app.after_request
 def add_header(response):
@@ -83,27 +84,29 @@ def add_header(response):
 def home():
     return render_template('home.html')
 
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    """ function for a log """
+    """ function for a log in"""
     if request.method == 'GET':
         return render_template('login.html')
         
     username = request.form['username'].strip()
     password = request.form['password'].strip()
-    registered_user = User.query.filter_by(username=username).first()
+    registered_user = user_db.User.query.filter_by(username=username).first()
     
     if registered_user is None:
         flash('Username does not exist', 'danger')
         return redirect(url_for('login'))
        
-    if registered_user.check_password(password) == False:
+    if not registered_user.check_password(password):
         flash('Password does not match user', 'danger')
-        return redirect(url_for(''))
+        return redirect(url_for('login'))
     
     login_user(registered_user)
     flash('Logged in successfully', 'info')
     return redirect(request.args.get('next') or url_for('home'))
+
 
 @app.route('/logout')
 @login_required
@@ -111,11 +114,11 @@ def logout():
     """ Logs out user and returns them to the homepage.
     
     """
-    
-    session.pop('compound_file', None)
+
     logout_user()
     flash('Logged out successfully', 'info')
     return redirect(url_for('home'))
+
 
 def checkRecaptcha(response, secretkey):
     """ Checks the response to the recaptcha entry on the login page. Returns True if response == recaptcha diplayed
@@ -154,24 +157,18 @@ def register():
         return render_template('register.html')
 
     try:
-        user = User(request.form['username'], request.form['password'], request.form['email'])
+        user = user_db.User(request.form['username'], request.form['password'], request.form['email'])
     except sqlalchemy.exc.IntegrityError as e:
         flash('Sorry, either user exists with that username or email.', 'danger')
     recaptcha = request.form['g-recaptcha-response']
     if checkRecaptcha(recaptcha, CIIProConfig.SECRET_KEY):
         db.session.add(user)
         db.session.commit()
-        directory = CIIProConfig.UPLOAD_FOLDER + '/' + str(user.username)
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-            sub_folders = ["compounds", "biosims", "profiles", "converter", "test_sets", "NNs", "datasets"]
-            for sf in sub_folders:
-                sub_directory = directory + '/' + sf
-                os.makedirs(sub_directory)
         flash('User successfully registered')
     else:
         flash('Registration failed', 'danger')
     return redirect(url_for('login'))
+
 
 @app.route('/passwordrecovery', methods=['GET', 'POST']) 
 def passrecov():
@@ -183,12 +180,13 @@ def passrecov():
     
     if request.method == 'POST':
         email = request.form['email']
-        response = passwordRetrieval(email, User, db)
+        response = passwordRetrieval(email, user_db.User, db)
         if response == "No email":
             error = "No user associated with that email, please register"
             return render_template('passwordrecovery.html')
         else:
             return render_template('emailsent.html')
+
 
 @app.route('/usernamerecovery', methods=['GET', 'POST']) 
 def usernamerecov():
@@ -238,30 +236,37 @@ def passreset():
 def before_request():
     g.user = current_user
 
+
 @app.route('/tutorial')
 def tutorial():
     return render_template('tutorial.html')
+
 
 @app.route('/sendbiopro')
 def sendbiopro():
       return render_template('StatsGlossary.html')
 
+
 @app.route('/sendbiosim')
 def sendbiosim():
       return send_file('tutorial_samples/BioSim.txt', as_attachment=True)      
+
 
 @app.route('/sendbioconf')
 def sendbiosimconf():
       return send_file('tutorial_samples/BioSim_Conf.txt', as_attachment=True)      
 
+
 @app.route('/sendbionn')
 def sendbionn():
       return send_file('tutorial_samples/Bioneighbor.txt', as_attachment=True)
-      
+
+
 @app.route('/sendactivity')
 def sendactivity():
       return send_file('tutorial_samples/Activity.txt', as_attachment=True)
-      
+
+
 @app.route('/sendbiopred')
 def sendbiopred():
       return send_file('tutorial_samples/BioPred.txt', as_attachment=True)
@@ -273,9 +278,6 @@ def statsglossary():
     
     """    
     return render_template('statsglossary.html')
-
-
-
 
 
 @app.route('/curator', methods=['GET', 'POST'])
@@ -336,6 +338,7 @@ def uploadcurationset():
 
         return render_template('curator.html', curationset=table_json)
 
+
 @app.route('/curateDataset', methods=['GET', 'POST'])
 @login_required
 def curateDataset():
@@ -388,16 +391,16 @@ def curateDataset():
 
     return jsonify(json_data)
 
+
 @app.route('/datasets', methods=['GET', 'POST'])
 @login_required
 def datasets():
     """ Displays datasets page with all available datasets in users compound folder. 
     
     """
-    datasets = g.user.get_user_datasets(set_type='training') + g.user.get_user_datasets(set_type='test')
+    datasets = g.user.get_user_datasets()
 
     return render_template('datasets.html', datasets=datasets,
-                           testsets=g.user.get_user_datasets(set_type='test'),
                           username=g.user.username)
 
 
@@ -412,12 +415,9 @@ def uploaddataset():
             compound_file: user file upload, first column should be compounds, second should be activity.
             model_type: training or test set upload
     """
-   
 
-    
     username = g.user.username
 
-    # requests
     input_type = request.form['input_type'].lower()
     file = request.files['compound_file']
     model_type = request.form['model_type']
@@ -425,44 +425,39 @@ def uploaddataset():
     if file and allowed_file(file.filename):
         compound_filename = secure_filename(file.filename)
 
-        user_datasets_folder = g.user.get_user_folder('datasets')
-        user_uploaded_file = os.path.join(user_datasets_folder, compound_filename)
+        full_path = os.path.join(CIIProConfig.UPLOAD_FOLDER, compound_filename)
+        file.save(full_path)
 
-        # make the name of the dataset just the basename of the file
+        file_is_valid, error_message = ciipro_io.check_input_file(full_path)
 
-        name = ntpath.basename(user_uploaded_file).split('.')[0]
+        if not file_is_valid:
+            flash(error_message, 'danger')
+            return render_template('datasets.html',
+                                   datasets=g.user.get_user_datasets(),
+                                   username=username)
 
-        # I think we have to save this in order to use it, not sure if we car read it otherwise
-        file.save(user_uploaded_file)
+        # add a user dataset
+        name = ntpath.basename(full_path).split('.')[0]
 
-        # TODO: Need to write some checks to make sure everything in the uploaded dataset is good
-        # TODO: Things like all activies are there, columns match, etc
-        # TODO: the following type conversions are necessary for JSON serialization
+        raw_data = pd.read_csv(full_path, header=None, sep='\t')
+        raw_data.columns = [input_type, 'activity']
+        compound_data = ciipro_io.convert_upload_data(raw_data, identifier=input_type)
 
-        identifiers, activities = ciipro_io.parse_upload_file(user_uploaded_file)
+        compound_data = compound_data.merge(raw_data, how='left')
 
-        activities = list(map(int, activities))
+        # load query mongo db to convert
+        # get all identifiers
 
-        if input_type == 'cid':
-            identifiers = list(map(int, identifiers))
-        else:
-            identifiers = list(map(str, identifiers))
+        g.user.add_user_dataset(name=name, data=compound_data)
 
-        ds_io.write_ds_to_json(identifiers,
-                               activities,
-                               user_datasets_folder,
-                               name, input_type,
-                               set_type=model_type)
-        os.remove(user_uploaded_file)
-
+        flash("Uploaded dataset successfully", "success")
         return redirect(url_for('datasets'))  
     else:
         error = "Please attach file"
         return render_template('datasets.html',
-                               datasets=g.user.get_user_datasets(set_type='training'),
-                               testsets=g.user.get_user_datasets(set_type='test'),
-                               username=username, error=error)
-     
+                               datasets=g.user.get_user_datasets(),
+                               error=error,
+                               username=g.user.username)
 
 @app.route('/deletetestset', methods=['POST'])
 @login_required
@@ -475,7 +470,8 @@ def deletetestset():
     testset_filename = '{}.json'.format(str(request.form['testset_filename']))
     os.remove(os.path.join(g.user.get_user_folder('datasets'), testset_filename))
     return redirect(url_for('datasets'))  
-                            
+
+
 @app.route('/deletedataset', methods=['POST'])
 @login_required
 def deletedataset():
@@ -487,6 +483,7 @@ def deletedataset():
     compound_filename = '{}.json'.format(str(request.form['compound_filename']))
     os.remove(os.path.join(g.user.get_user_folder('datasets'), compound_filename))
     return redirect(url_for('datasets'))
+
 
 @app.route('/CIIProfiler') 
 @login_required
@@ -528,13 +525,6 @@ def CIIPro_Optimizer():
     return render_template('CIIPro_Optimizer.html',
                            profiles=g.user.get_user_bioprofiles(),
                            username=g.user.username)
-
-def allowed_file(filename): #method that checks to see if upload file is allowed
-    return '.' in filename and filename.rsplit('.', 1)[1] in CIIProConfig.ALLOWED_EXTENSIONS
-
-def allowed_curation(filename): #method that checks to see if upload file is allowed
-    return '.' in filename and filename.rsplit('.', 1)[1] in ['sdf', 'txt']
-
 
 
 @app.route('/CIIPro_Cluster', methods=['GET', 'POST'])
@@ -583,6 +573,7 @@ def CIIPro_Cluster():
         return render_template('CIIProCluster.html', profiles=g.user.get_user_bioprofiles(),
                                clusters=g.user.get_user_fp_profiles())
 
+
 @app.route('/optimizeassays', methods=['POST'])
 @login_required
 def removeassays():
@@ -602,6 +593,7 @@ def removeassays():
 
     session['cur_prof_dir'] = new_name
     return redirect(url_for('optimizeprofile'))
+
 
 @app.route('/ciiprofile',  methods=['POST'])
 @login_required
@@ -669,7 +661,6 @@ def CIIProfile():
         return render_template('CIIProfiler.html', stats=None, datasets=g.user.get_user_datasets(set_type='training'))
 
 
-    
 @app.route('/CIIPPredict', methods=['POST'])
 @login_required
 def CIIPPredict():
@@ -811,7 +802,6 @@ def CIIPPredict():
                                data=data, stats=stats)
 
 
-
 @app.route('/similarity<cid>', methods=['GET', 'POST'])
 @login_required
 def similarity(cid):
@@ -842,6 +832,7 @@ def CIIProTools():
     datasets = [dataset for dataset in os.listdir(USER_COMPOUND_FOLDER)]
     return render_template('CIIProTools.html', datasets=g.user.get_user_datasets(set_type='training'), 
                            username=g.user.username)	
+
 
 @app.route('/activitycliffs', methods=['GET', 'POST']) 
 @login_required
@@ -906,6 +897,7 @@ def get_dataset_overview(dataset_name):
     }
     return json.dumps(data)
 
+
 @login_required
 @app.route('/get_bioprofile/<profile_name>')
 def get_bioprofile(profile_name):
@@ -955,6 +947,7 @@ def get_bioprofile_class_overview(profile_name):
 
     return json.dumps(json_data)
 
+
 @login_required
 @app.route('/get_bioprofile_descriptions/<profile_name>')
 def get_bioprofile_descriptions(profile_name):
@@ -978,7 +971,6 @@ def get_bioprofile_descriptions(profile_name):
     return json.dumps(descriptions)
 
 
-
 @login_required
 @app.route('/delete_profile', methods=['POST'])
 def delete_profile():
@@ -996,6 +988,7 @@ def delete_profile():
 
     return 'OK', 200
 
+
 @login_required
 @app.route('/delete_dataset', methods=['POST'])
 def delete_dataset():
@@ -1012,7 +1005,6 @@ def delete_dataset():
     os.remove(dataset_path)
 
     return 'OK', 200
-
 
 
 @login_required
@@ -1092,7 +1084,6 @@ def send_cluster_data():
     return 'OK', 200
 
 
-
 @login_required
 @app.route('/get_adj_matrix/<clustering_name>')
 def get_adj_matrix(clustering_name):
@@ -1105,7 +1096,6 @@ def get_adj_matrix(clustering_name):
         'profile_used': adj_matrix.profile_used,
         'linkage': adj_matrix.linkage
     }
-
 
     return json.dumps(data)
 
@@ -1179,7 +1169,5 @@ def filter_profile():
     return 'OK', 200
 
 
-
-if __name__ == '__main__': #says if this scripts is run directly, start the application
-
-	app.run(host="0.0.0.0", port=80)
+if __name__ == '__main__':
+    app.run(host="0.0.0.0", port=80)
