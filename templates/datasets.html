@@ -32,9 +32,9 @@
                           </select>
                       </div>
                       <label for="test-trainl" class="card-text">Training or test:</label>
-                      <div id="test-train">
-                          <input type="radio" name="model_type" value="training" checked="checked"> Training Set</input>
-                          <input type="radio" name="model_type" value="test"> Test Set</input>
+                      <div id="dataset-name">
+                          <label for="dataset_name" class="card-text">Enter dataset name:</label>
+                          <input type="text" class="form-control" name="dataset_name">
                       </div>
 
                       <input type="submit" style="color: white;"
@@ -117,9 +117,7 @@
           <div class="card-body">
             <h5 class="card-title">Dataset overview</h5>
               <h6 id="this_ds">Dataset Name:  <span id="this_ds_text" class="prof-attr text-muted"></span></h6>
-              <h6 id="num_acts">Num Actives:  <span id="num_act_text" class="prof-attr text-muted"></span></h6>
-              <h6 id="num_inacts">Num Inactives:  <span id="num_inact_text" class="prof-attr text-muted"></span></h6>
-              <h6 id="tot">Training or Test Set: <span id="tot_text" class="prof-attr text-muted"></span></h6>
+              <h6 id="num_chems">Num Chemicals:  <span id="num_chem_text" class="prof-attr text-muted"></span></h6>
           </div>
           </div>
         </div>

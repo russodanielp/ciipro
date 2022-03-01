@@ -286,11 +286,9 @@ def curator_page():
     """ Displays the page for curating a dataset.
 
     """
-    datasets = g.user.get_user_datasets(set_type='training') + g.user.get_user_datasets(set_type='test')
+    datasets = g.user.get_user_datasets()
 
-    return render_template('curator.html', datasets=datasets,
-                           testsets=g.user.get_user_datasets(set_type='test'),
-                           username=g.user.username)
+    return render_template('curator.html', datasets=datasets)
 
 
 @app.route('/uploadcurationset', methods=['POST', 'GET'])
@@ -398,7 +396,7 @@ def datasets():
     """ Displays datasets page with all available datasets in users compound folder. 
     
     """
-    datasets = g.user.get_user_datasets()
+    datasets = g.user.get_user_dataset_names()
 
     return render_template('datasets.html', datasets=datasets,
                           username=g.user.username)
@@ -420,7 +418,13 @@ def uploaddataset():
 
     input_type = request.form['input_type'].lower()
     file = request.files['compound_file']
-    model_type = request.form['model_type']
+    dataset_name = request.form['dataset_name'].strip()
+
+    if not dataset_name:
+        from datetime import datetime
+
+        dataset_name = datetime.now().strftime('%Y-%m-%d-%H-%M%S-dataset')
+
     
     if file and allowed_file(file.filename):
         compound_filename = secure_filename(file.filename)
@@ -433,14 +437,20 @@ def uploaddataset():
         if not file_is_valid:
             flash(error_message, 'danger')
             return render_template('datasets.html',
-                                   datasets=g.user.get_user_datasets(),
+                                   datasets=g.user.get_user_dataset_names(),
                                    username=username)
 
+        if g.user.dataset_name_exists(dataset_name):
+            flash('There already exists a dataset with name name.  Please choose another.', 'danger')
+            return render_template('datasets.html',
+                                   datasets=g.user.get_user_dataset_names(),
+                                   username=username)
         # add a user dataset
         name = ntpath.basename(full_path).split('.')[0]
 
         raw_data = pd.read_csv(full_path, header=None, sep='\t')
         raw_data.columns = [input_type, 'activity']
+        raw_data[input_type] = raw_data[input_type].astype(str)
         compound_data = ciipro_io.convert_upload_data(raw_data, identifier=input_type)
 
         compound_data = compound_data.merge(raw_data, how='left')
@@ -448,7 +458,7 @@ def uploaddataset():
         # load query mongo db to convert
         # get all identifiers
 
-        g.user.add_user_dataset(name=name, data=compound_data)
+        g.user.add_user_dataset(name=dataset_name, data=compound_data)
 
         flash("Uploaded dataset successfully", "success")
         return redirect(url_for('datasets'))  
@@ -469,6 +479,7 @@ def deletetestset():
     """
     testset_filename = '{}.json'.format(str(request.form['testset_filename']))
     os.remove(os.path.join(g.user.get_user_folder('datasets'), testset_filename))
+
     return redirect(url_for('datasets'))  
 
 
@@ -885,15 +896,13 @@ def internalServiceError(e):
 @app.route('/get_dataset_overview/<dataset_name>')
 def get_dataset_overview(dataset_name):
 
-    ds = g.user.load_dataset(dataset_name)
-    actives, inactives = ds.get_classifications_overview()
+    ds = g.user.get_user_dataset(dataset_name)
+    chemicals = ds.get_chemicals()
+    activities = chemicals.value.values.tolist()
     data  = {
         'name': dataset_name,
-        'actives': int(actives),
-        'inactives': int(inactives),
-        'set_type': ds.set_type,
-        'compounds': ds.compounds,
-        'activities': ds.activities
+        'chemicals': len(chemicals),
+        'activities': activities
     }
     return json.dumps(data)
 

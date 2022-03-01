@@ -1,9 +1,11 @@
 from ciipro.routes import db
+#from routes import app
 from werkzeug.security import generate_password_hash, check_password_hash
 # Refer: https://docs.sqlalchemy.org/en/14/orm/basic_relationships.html
 
 
 from sqlalchemy import ForeignKey
+from sqlalchemy import and_, or_
 from sqlalchemy.orm import relationship
 
 from sqlalchemy import create_engine
@@ -67,8 +69,8 @@ class User(db.Model):
         data: a pandas dataframe in the ciipro containing columns for smiles, inchi, activity,
         and cid
         """
-
-        dataset = Dataset(name=name, owner_id=self.id)
+        chemicals = []
+        dataset = Dataset(name=name, owner_id=self.id, chemicals=chemicals)
         db.session.add(dataset)
         db.session.commit()
 
@@ -81,45 +83,76 @@ class User(db.Model):
                                     inchi=row.inchi,
                                     dataset_id=dataset.id)
 
-            activity = Activity(activity=row.activity,
+            activity = Activity(value=row.activity,
                                 dataset_id=dataset.id,
                                 chemical_id=chemical.id)
             chemical.activities.append(activity)
-            a = Association()
-            a.chemical = chemical
-            dataset.chemicals.append(a)
+
+            dataset.chemicals.append(activity)
 
 
         db.session.add(dataset)
         db.session.commit()
 
-    def get_user_datasets(self):
-        return self.datasets
+    def get_user_dataset_names(self):
+        return [ds.name for ds in self.datasets]
 
+    def get_user_dataset(self, name):
+        dataset = db.session.query(Dataset) \
+                    .join(Dataset, User.datasets) \
+                    .filter(Dataset.name == name).first()
+        return dataset
+
+    def dataset_name_exists(self, name):
+        return db.session.query(Dataset) \
+                    .filter(Dataset.name == name).first()
 
 # an association table is needed for chemicals
 # and datasets because they are a Many-to-Many
 # relationship
 
 
-class Association(db.Model):
-    __tablename__ = 'association'
-    chemical_id = Column(ForeignKey('chemicals.id'), primary_key=True)
-    dataset_id = Column(ForeignKey('datasets.id'), primary_key=True)
-    chemical = relationship("Chemical", back_populates="datasets")
+class Activity(db.Model):
+    __tablename__ = 'activities'
+    id = Column('id', db.Integer, primary_key=True)
+    chemical_id = Column(ForeignKey('chemicals.id'))
+    dataset_id = Column(ForeignKey('datasets.id'))
+    chemical = relationship("Chemical", back_populates="activities")
     dataset = relationship("Dataset", back_populates="chemicals")
+
+    value = Column('value', db.Float)
+    units = Column('units', db.String)
 
 class Dataset(db.Model):
     """ main table to hold a users' datasets """
     __tablename__ = 'datasets'
     id = db.Column('id', db.Integer, primary_key=True)
-    name = db.Column('String', db.String)
+    name = db.Column('String', db.String, unique=True)
     owner_id = db.Column('owner_id', db.Integer, db.ForeignKey("users.user_id"))
 
     # chemicals = relationship("Chemical", back_populates="dataset")
-    chemicals = db.relationship("Association", back_populates='dataset')
+    chemicals = db.relationship("Activity", back_populates='dataset')
     #owner = relationship("User", back_populates="datasets")
 
+    def __init__(self, name, owner_id, chemicals):
+        self.owner_id = owner_id
+        self.name = name
+        self.chemicals = chemicals
+
+    def get_activities(self):
+        return [activity.value for activity in self.chemicals]
+
+    def get_num_chemicals(self):
+        return len(self.chemicals)
+
+    def get_chemicals(self):
+        """ get chemicals associated with this dataset """
+        query = db.session.query(Dataset) \
+                        .filter(Dataset.id == self.id) \
+                        .join(Activity, Dataset.id == Activity.dataset_id) \
+                        .join(Chemical, Activity.chemical_id == Chemical.id) \
+                        .with_entities(Chemical.inchi, Activity.value, Chemical.id)
+        return pd.read_sql(query.statement, query.session.bind)
 
 class Chemical(db.Model):
     """ users chemical class.  Every uploaded chemical for a user should have
@@ -130,22 +163,24 @@ class Chemical(db.Model):
     smiles = db.Column('smiles', db.String)
 
     dataset_id = db.Column('dataset_id', db.Integer, db.ForeignKey("datasets.id"))
-    datasets = db.relationship("Association", back_populates='chemical')
+    #datasets = db.relationship("Association", back_populates='chemical')
     activities = db.relationship("Activity", backref='chemicals', uselist=True)
 
-class Activity(db.Model):
-    """ activity class.  an activity should belone to one chemical and one dataset """
-    __tablename__ = 'activities'
-    id = db.Column('id', db.Integer, primary_key=True)
-    activity = db.Column('activity', db.Float)
-
-
-    dataset_id = db.Column('dataset_id', db.Integer, db.ForeignKey("datasets.id"))
-    chemical_id = db.Column('chemical_id', db.Integer, db.ForeignKey("chemicals.id"))
+# class Activity(db.Model):
+#     """ activity class.  an activity should belone to one chemical and one dataset """
+#     __tablename__ = 'activities'
+#     id = db.Column('id', db.Integer, primary_key=True)
+#     activity = db.Column('activity', db.Float)
+#
+#
+#     dataset_id = db.Column('dataset_id', db.Integer, db.ForeignKey("datasets.id"))
+#     chemical_id = db.Column('chemical_id', db.Integer, db.ForeignKey("chemicals.id"))
 
 db.create_all()
 
-
+if __name__ == '__main__':
+    data = db.session.query(Dataset).filter(Dataset.name == 'BBB')
+    print(data)
 
 
 

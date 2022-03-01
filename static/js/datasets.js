@@ -83,7 +83,7 @@ function plotBar(actives, inactives) {
 function updateOverview(data) {
 
     $("#this_ds_text").text(data.name);
-    $("#num_act_text").text(data.actives);
+    $("#num_chem_text").text(data.chemicals);
     $("#num_inact_text").text(data.inactives);
     $("#tot_text").text(data.set_type);
 
@@ -147,8 +147,8 @@ function updateDataset() {
     var dataset_data = JSON.parse(getResponseFromURL(queryUrl));
 
     updateOverview(dataset_data);
-    plotBar(dataset_data.actives, dataset_data.inactives);
-    updateCompoundTable(dataset_data);
+    // plotBar(dataset_data.actives, dataset_data.inactives);
+    // updateCompoundTable(dataset_data);
 
 }
 
