@@ -5,7 +5,7 @@ from rdkit import Chem
 from typing import List
 import pandas as pd
 import typing as tp
-from pc_mongodb import compounds_db
+from pc_mongodb import compounds_db, outcomes_db
 
 
 def check_input_file(filename: str) -> tp.Tuple[bool, str]:
@@ -53,6 +53,58 @@ def convert_upload_data(upload_data: pd.DataFrame, identifier: str) -> pd.DataFr
 
     df = pd.DataFrame(list(compounds_db.col_ob.aggregate(pipeline)))
     return df
+
+
+def get_compounds_from_aid(aid: str) -> pd.DataFrame:
+    """ given an aid, will get compound information all compounds from that aid along with
+     their inchi """
+
+
+    pipeline = [
+        {'$match': {'AID': aid, '$or': [{'Outcome':'Active'}, {'Outcome': 'Inactive'}]}},
+
+        {'$project': {
+            'CID': '$CID',
+            'AID': '$AID',
+            'Activity': '$Outcome',
+            '_id': 0
+        }},
+        # {
+        #   '$lookup': {
+        #       'from': 'compounds',
+        #       'let': {'cid': '$CID', 'ccid': '$compounds.CID'},
+        #       'as': 'structure_info',
+        #       'pipeline': [
+        #           {'$match': { '$expr': {'$eq': [ "$$cid", "$$ccid" ] }}},
+        #           {'$project': {'InChI Standard': 1, '_id': 0}}
+        #       ]
+        #   }
+        # }
+        {
+            '$lookup': {
+                'from': 'compounds',
+                'localField': 'CID',
+                'foreignField': 'CID',
+                'as': 'structure_info'
+
+            }
+        },
+        {'$unwind': "$structure_info"},
+        {'$project': {
+            'cid': '$CID',
+            'activity': '$Activity',
+            'inchi': '$structure_info.InChI Standard',
+            'smiles': '$structure_info.SMILES Canonical',
+            '_id': 0
+        }},
+    ]
+
+    df = pd.DataFrame(list(outcomes_db.col_ob.aggregate(pipeline)))
+    df['activity'] = df['activity'].map({'Active': 1, 'Inactive': 0})
+    return df
+
+def pubchem_aid_is_in_db(pubchem_aid: str) -> bool:
+    return outcomes_db.col_ob.find({'AID': pubchem_aid}).count() > 0
 
 
 def parse_upload_file(filename: str) -> pd.DataFrame:
@@ -132,7 +184,10 @@ def parse_mols(mols: List[Chem.Mol]) -> List:
     return data
 
 if __name__ == '__main__':
-    test = pd.read_csv('/Users/danielrusso/data/ciipro_test_sets/ciipro_test.txt', sep='\t', header=None)
-    test[0] = test[0].astype(str)
-    df = convert_upload_data(test.iloc[:20], identifier='cid')
-    print(df.head())
+    # test = pd.read_csv('/Users/danielrusso/data/ciipro_test_sets/ciipro_test.txt', sep='\t', header=None)
+    # test[0] = test[0].astype(str)
+    # df = convert_upload_data(test.iloc[:20], identifier='cid')
+    # print(df.head())
+    #print(list(outcomes_db.col_ob.find({'AID': '1'})))
+    df = get_compounds_from_aid('1')
+    print(df.Activity.value_counts())

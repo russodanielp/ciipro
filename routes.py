@@ -469,6 +469,45 @@ def uploaddataset():
                                error=error,
                                username=g.user.username)
 
+
+@app.route('/importpubchem', methods=['POST', 'GET'])
+@login_required
+def importpubchem():
+    """ Imports a pubchem dataset from the mongodb and stores it as a user folder.
+
+        Requests:
+            input_type (str): radio button from page
+            compound_file: user file upload, first column should be compounds, second should be activity.
+            model_type: training or test set upload
+    """
+
+    username = g.user.username
+
+
+    pubchem_aid = request.form['pubchem_aid'].strip()
+    dataset_name = 'AID_{}'.format(pubchem_aid)
+
+
+    if g.user.dataset_name_exists(dataset_name):
+        flash('PubChem AID already added for user.', 'danger')
+        return render_template('datasets.html',
+                               datasets=g.user.get_user_dataset_names(),
+                               username=username)
+
+    if not ciipro_io.pubchem_aid_is_in_db(pubchem_aid):
+        flash('PubChem AID not in database.', 'danger')
+        return render_template('datasets.html',
+                               datasets=g.user.get_user_dataset_names(),
+                               username=username)
+
+    compound_data = ciipro_io.get_compounds_from_aid(pubchem_aid)
+
+    g.user.add_user_dataset(name=dataset_name, data=compound_data)
+
+    flash("Uploaded dataset successfully", "success")
+    return redirect(url_for('datasets'))
+
+
 @app.route('/deletetestset', methods=['POST'])
 @login_required
 def deletetestset():

@@ -70,7 +70,7 @@ class User(db.Model):
         and cid
         """
         chemicals = []
-        dataset = Dataset(name=name, owner_id=self.id, chemicals=chemicals)
+        dataset = Dataset(name=name, owner_id=self.id)
         db.session.add(dataset)
         db.session.commit()
 
@@ -80,18 +80,18 @@ class User(db.Model):
             if not chemical:
                 chemical = Chemical(id=row.cid,
                                     smiles=row.smiles,
-                                    inchi=row.inchi,
-                                    dataset_id=dataset.id)
+                                    inchi=row.inchi)
 
             activity = Activity(value=row.activity,
                                 dataset_id=dataset.id,
                                 chemical_id=chemical.id)
             chemical.activities.append(activity)
-
-            dataset.chemicals.append(activity)
+            chemicals.append(chemical)
+            #dataset.chemicals.append(activity)
 
 
         db.session.add(dataset)
+        db.session.add_all(chemicals)
         db.session.commit()
 
     def get_user_dataset_names(self):
@@ -134,10 +134,9 @@ class Dataset(db.Model):
     chemicals = db.relationship("Activity", back_populates='dataset')
     #owner = relationship("User", back_populates="datasets")
 
-    def __init__(self, name, owner_id, chemicals):
+    def __init__(self, name, owner_id):
         self.owner_id = owner_id
         self.name = name
-        self.chemicals = chemicals
 
     def get_activities(self):
         return [activity.value for activity in self.chemicals]
@@ -162,7 +161,7 @@ class Chemical(db.Model):
     inchi = db.Column('inchi', db.String)
     smiles = db.Column('smiles', db.String)
 
-    dataset_id = db.Column('dataset_id', db.Integer, db.ForeignKey("datasets.id"))
+    #dataset_id = db.Column('dataset_id', db.Integer, db.ForeignKey("datasets.id"))
     #datasets = db.relationship("Association", back_populates='chemical')
     activities = db.relationship("Activity", backref='chemicals', uselist=True)
 

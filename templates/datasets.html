@@ -44,50 +44,74 @@
               </div>
             </div>
           </div>
+
         <div class="col-sm-6">
             <div class="card shadow p-3 mb-5 bg-white rounded">
               <div class="card-body">
-
-                  <h5 class="card-title">CIIPro training sets.</h5>
-                  <p class="card-text">A variety of curated, ready-to-model training sets are available.
-                  Double-click a training set to add it to your available datasets.  Please click <a href="/CIIProdatasets">here</a>
-                  for information regarding these datasets.</p>
-
-                  <table class="table table-sm table-hover">
-                      <thead>
-                      <tr>
-                          <th scope="col">Name</th>
-                          <th scope="col">Endpoint</th>
-                      </tr>
-                      </thead>
-                      <tbody>
-                          <tr>
-                              <td>Acute oral toxicity</td>
-                              <td>LD<sub>50</sub> (mg/kg)</td>
+                  <form action="/importpubchem" method="post" enctype="multipart/form-data" name="">
+                      <h5 class="card-title">Import a PubChem dataset.</h5>
+                      <p class="card-text">Here you can import structure and activity information from a set of PubChem
+                          chemicals given a PubChem Assay Identifier (AID) directly into your user.</p>
 
 
+                      <div id="pubchem-aid-div">
+                          <label for="pubchem_aid" class="card-text">Enter PubChem AID:</label>
+                          <input type="text" class="form-control" name="pubchem_aid">
+                      </div>
 
-
-                          </tr>
-                          <tr>
-                              <td>Hepatotoxicity</td>
-                              <td>LD<sub>50</sub> (mg/kg)</td>
-                          </tr>
-
-                          <tr>
-                              <td>Ocular Toxicity</td>
-                              <td> GHS and U.S. EPA categorization </td>
-                          </tr>
-
-
-                      </tbody>
-                  </table>
-
-
+                      <input type="submit" style="color: white;"
+                         class="btn btn-primary btn-padding"
+                         value="Import dataset" onclick="loading()"></input>
+                  </form>
               </div>
             </div>
           </div>
     </div>
+{#        <div class="col-sm-6">#}
+{#            <div class="card shadow p-3 mb-5 bg-white rounded">#}
+{#              <div class="card-body">#}
+{##}
+{#                  <h5 class="card-title">CIIPro training sets.</h5>#}
+{#                  <p class="card-text">A variety of curated, ready-to-model training sets are available.#}
+{#                  Double-click a training set to add it to your available datasets.  Please click <a href="/CIIProdatasets">here</a>#}
+{#                  for information regarding these datasets.</p>#}
+{##}
+{#                  <table class="table table-sm table-hover">#}
+{#                      <thead>#}
+{#                      <tr>#}
+{#                          <th scope="col">Name</th>#}
+{#                          <th scope="col">Endpoint</th>#}
+{#                      </tr>#}
+{#                      </thead>#}
+{#                      <tbody>#}
+{#                          <tr>#}
+{#                              <td>Acute oral toxicity</td>#}
+{#                              <td>LD<sub>50</sub> (mg/kg)</td>#}
+{##}
+{##}
+{##}
+{##}
+{#                          </tr>#}
+{#                          <tr>#}
+{#                              <td>Hepatotoxicity</td>#}
+{#                              <td>LD<sub>50</sub> (mg/kg)</td>#}
+{#                          </tr>#}
+{##}
+{#                          <tr>#}
+{#                              <td>Ocular Toxicity</td>#}
+{#                              <td> GHS and U.S. EPA categorization </td>#}
+{#                          </tr>#}
+{##}
+{##}
+{#                      </tbody>#}
+{#                  </table>#}
+{##}
+{##}
+{#              </div>#}
+{#            </div>#}
+{#          </div>#}
+{#    </div>#}
+
 
     <div class="row">
       <div class="col-sm-6">
